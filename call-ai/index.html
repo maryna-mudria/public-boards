@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E7C86'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial,sans-serif' font-size='38' font-weight='700' fill='white'%3EC%3C/text%3E%3C/svg%3E">
+<title>Call-AI · доска исполнения</title>
+<style>
+  :root{
+    --paper:#EEF0F1; --panel:#F7F8F8; --ink:#161A1D; --muted:#5B676B; --faint:#8A959A;
+    --rule:#D6DADC; --accent:#0E7C86;
+    --backlog:#64748B; --progress:#2563A8; --testing:#B7791F; --done:#2E7D46;
+    --backlog-bg:#E9ECEF; --progress-bg:#E3ECF6; --testing-bg:#F6ECD9; --done-bg:#E4F0E8;
+    --p0:#B04A4A; --p0-bg:#F3E2E2; --p1:#B7791F; --p1-bg:#F6ECD9; --p2:#5B676B; --p2-bg:#E9ECEF;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);}
+  .wrap{
+    max-width:92rem; margin:0 auto; padding:2.4rem 1.4rem 4rem; color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  h1,h2,h3{ font-weight:650; text-wrap:balance; letter-spacing:-0.01em; }
+
+  .crumb{ font-family:"Cascadia Code",monospace; font-size:.74rem; color:var(--faint); margin:0 0 .8rem; }
+  .crumb a{ color:var(--accent); text-decoration:none; border-bottom:1px dashed var(--accent); }
+  .crumb a:hover{ border-bottom-style:solid; }
+  .crumb a:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  header.top{ border-bottom:2px solid var(--ink); padding-bottom:1.3rem; margin-bottom:1.4rem; }
+  .eyebrow{ font-family:"Cascadia Code",monospace; font-size:.72rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:.55em; }
+  .eyebrow::before{ content:""; width:1.6rem; height:2px; background:var(--accent); }
+  h1{ font-size:clamp(1.5rem,1.1rem+1.8vw,2.1rem); margin:.5rem 0 .3rem; line-height:1.1; }
+  .lede{ color:var(--muted); max-width:46rem; margin:0; font-size:1.02rem; }
+
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; margin:1.4rem 0 .3rem; }
+  .stat{ background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:.7rem .6rem;
+    display:flex; flex-direction:column; gap:.15rem; }
+  .stat .n{ font-family:"Cascadia Code",monospace; font-size:1.5rem; font-weight:600;
+    font-variant-numeric:tabular-nums; line-height:1; }
+  .stat .l{ font-size:.72rem; color:var(--muted); line-height:1.15; }
+  .stat.backlog{border-top:3px solid var(--backlog);} .stat.backlog .n{color:var(--backlog);}
+  .stat.progress{border-top:3px solid var(--progress);} .stat.progress .n{color:var(--progress);}
+  .stat.testing{border-top:3px solid var(--testing);} .stat.testing .n{color:var(--testing);}
+  .stat.done{border-top:3px solid var(--done);} .stat.done .n{color:var(--done);}
+
+  .controls{ margin:1.4rem 0 .3rem; display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+  .controls .lbl{ font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--faint);
+    min-width:6.2rem; }
+  .chip{ font-family:"Cascadia Code",monospace; font-size:.76rem; padding:.26rem .55rem; border-radius:2px;
+    border:1px solid var(--rule); background:#fff; color:var(--muted); cursor:pointer; display:inline-flex;
+    gap:.4em; align-items:center; user-select:none; }
+  .chip .dot{ width:.6em; height:.6em; border-radius:50%; display:inline-block; }
+  .chip[aria-pressed="true"]{ color:var(--ink); border-color:var(--ink); background:var(--panel); font-weight:600; }
+  .chip[aria-pressed="false"]{ opacity:.5; }
+  .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .board{ display:flex; gap:.8rem; overflow-x:auto; padding:.5rem 0 1.2rem; align-items:flex-start;
+    scroll-snap-type:x proximity; }
+  .column{ flex:0 0 17.5rem; display:flex; flex-direction:column; gap:.55rem; scroll-snap-align:start; }
+  .col-head{ display:flex; align-items:center; gap:.45rem; padding:.5rem .6rem; border-radius:3px;
+    font-family:"Cascadia Code",monospace; font-size:.8rem; font-weight:600; position:sticky; top:0; }
+  .col-head .cc{ margin-left:auto; font-variant-numeric:tabular-nums; opacity:.8; }
+  .col-head.backlog{background:var(--backlog-bg); color:var(--backlog);}
+  .col-head.progress{background:var(--progress-bg); color:var(--progress);}
+  .col-head.testing{background:var(--testing-bg); color:var(--testing);}
+  .col-head.done{background:var(--done-bg); color:var(--done);}
+
+  .card{ background:#fff; border:1px solid var(--rule); border-radius:4px; padding:.65rem .7rem;
+    display:flex; flex-direction:column; gap:.4rem; }
+  .card-top{ display:flex; align-items:center; gap:.4rem; }
+  .prio{ font-family:"Cascadia Code",monospace; font-size:.64rem; font-weight:700; padding:.03rem .38rem;
+    border-radius:2px; }
+  .prio.p0{background:var(--p0-bg); color:var(--p0);}
+  .prio.p1{background:var(--p1-bg); color:var(--p1);}
+  .prio.p2{background:var(--p2-bg); color:var(--p2);}
+  .proj{ font-family:"Cascadia Code",monospace; font-size:.64rem; color:var(--accent); border:1px solid var(--rule);
+    padding:.03rem .38rem; border-radius:2px; }
+  .cid{ font-family:"Cascadia Code",monospace; font-size:.68rem; color:var(--faint); margin-left:auto; }
+  .doc-ref{ font-family:"Cascadia Code",monospace; font-size:.72rem; color:var(--faint); }
+  .deadline{ font-family:"Cascadia Code",monospace; font-size:.7rem; color:var(--p0); background:var(--p0-bg);
+    border-radius:2px; padding:.05rem .4rem; align-self:flex-start; font-variant-numeric:tabular-nums; }
+  .status-date{ font-family:"Cascadia Code",monospace; font-size:.7rem; border-radius:2px; padding:.05rem .4rem;
+    align-self:flex-start; font-variant-numeric:tabular-nums; }
+  .status-date.testing{ color:var(--testing); background:var(--testing-bg); }
+  .status-date.done{ color:var(--done); background:var(--done-bg); }
+  .card h3{ font-size:.92rem; margin:0; line-height:1.28; font-weight:600; }
+  .note{ font-size:.83rem; color:var(--muted); margin:0; }
+  .card-foot{ display:flex; align-items:center; gap:.5rem; margin-top:.1rem; padding-top:.4rem;
+    border-top:1px dashed var(--rule); }
+  .pr-link{ font-family:"Cascadia Code",monospace; font-size:.72rem; color:var(--accent); text-decoration:none; }
+  .pr-link:hover{ text-decoration:underline; }
+  .pr-link:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .pr-none{ font-family:"Cascadia Code",monospace; font-size:.72rem; color:var(--faint); font-style:italic; }
+  .owner{ font-size:.74rem; color:var(--faint); margin-left:auto; }
+  .col-empty{ color:var(--faint); font-size:.8rem; font-style:italic; padding:.3rem .2rem; }
+
+  footer{ margin-top:2rem; padding-top:1.1rem; border-top:1px solid var(--rule); color:var(--faint);
+    font-size:.8rem; font-family:"Cascadia Code",monospace; }
+  .hint{ font-size:.8rem; color:var(--faint); margin:.2rem 0 0; }
+
+  @media (max-width:640px){
+    .stats{ grid-template-columns:repeat(2,1fr); }
+    .wrap{ padding:1.6rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Call-AI · доска исполнения</div>
+    <h1>Что осталось довести до конца</h1>
+    <p class="lede">Три потока: хвосты ASR-плана confirmed-findings, офлайн-бэклог по разрыву с ТЗ (эпики A-E) и хвосты платформы. Приоритет, проект и ссылка на PR/задачу/документ - на каждой карточке. Единственный источник правды - эта HTML-страница.</p>
+
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="controls">
+    <span class="lbl">Приоритет</span>
+    <div id="prio-filter" style="display:contents"></div>
+  </div>
+  <div class="controls">
+    <span class="lbl">Проект</span>
+    <div id="proj-filter" style="display:contents"></div>
+  </div>
+  <p class="hint">Клик по приоритету/проекту оставляет только такие карточки во всех столбцах.</p>
+
+  <main class="board" id="board"></main>
+
+  <footer>
+    Обновлено 2026-07-10. Двигайте карточки правкой массива CARDS в этом файле.
+  </footer>
+</div>
+
+<script>
+  const LANES = [
+    {key:"backlog",  label:"Бэклог"},
+    {key:"progress", label:"В работе"},
+    {key:"testing",  label:"На тестировании"},
+    {key:"done",     label:"Выполнено"},
+  ];
+  const PRIO = [
+    {key:"p0", label:"P0 — срочно"},
+    {key:"p1", label:"P1 — скоро"},
+    {key:"p2", label:"P2 — можно подождать"},
+  ];
+  const PROJ = [
+    {key:"asr",    label:"ASR"},
+    {key:"tzgap",  label:"ТЗ-gap"},
+    {key:"core",   label:"Платформа"},
+  ];
+
+  // Interpolated into innerHTML unescaped below (cardHtml/renderStats/etc).
+  // Safe only because CARDS is a static, hand-edited array with no external
+  // or user input — do not wire this up to an API/form without adding
+  // HTML-escaping first.
+  const CARDS = [
+    {id:"CORE-1", lane:"testing", prio:"p0", proj:"core", statusDate:"2026-05-20",
+     title:"Insights two-pass: перевести INSIGHTS_USE_TWO_PASS в true",
+     note:"Все §01-13 давно смержены и лежат за флагом «false» в ожидании бенча и переключения. Ранбук согласования (insights-v10-cutover) — пустой шаблон, сверку так никто и не довёл до конца.",
+     doc:"docs/runbooks/insights-v10-cutover.md"},
+    {id:"CORE-2", lane:"backlog", prio:"p1", proj:"core",
+     title:"Speaker-role: бейдж роли + банер needs_speaker_review",
+     note:"INSIGHTS_USE_DETECTED_ROLES уже боевой, но UI-предупреждение о неуверенном определении роли не построено, и bench-gate из плана ни разу не запускался — фича живёт без страховки.",
+     doc:"docs/baselines/speaker-role-renderer-bench-2026-05-19.md"},
+    {id:"CORE-3", lane:"backlog", prio:"p1", proj:"core",
+     title:"Catalog-guard: перевод enforce по организациям",
+     note:"Держится в shadow (enforce=false) из-за риска недозрелого каталога у теста с заказчиком. Решение по каждой org — после итогов теста.",
+     doc:"docs/planning/2026-06-18-pre-test-freeze-readiness.md"},
+    {id:"CORE-4", lane:"backlog", prio:"p1", proj:"core",
+     title:"Проверить, живы ли ещё issue #474 (upload ≥10MB → 500) и #416 (/me → organization_id: null)",
+     note:"Оба отмечены «OPEN» в последнем известном статусе, но с 2026-06-19 никто не подтверждал и не чинил ни то, ни другое — неизвестно, актуальны ли они ещё на сегодняшнем коде.",
+     refs:[
+       {label:"Issue #474", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/issues/474"},
+       {label:"Issue #416", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/issues/416"},
+     ]},
+    {id:"CORE-5", lane:"backlog", prio:"p2", proj:"core",
+     title:"Multi-tenancy: обещанный пост-деплой cleanup (DROP ROLE call_ai)",
+     note:"После недели стабильной работы RLS планировался отдельный PR: убрать легаси-роль call_ai и снять Python-side scope_calls_query/scope_to_tenant как избыточную защиту поверх RLS. Ни то, ни другое не сделано.",
+     doc:"docs/planning/multi-tenancy-roadmap/sections/section-13-rls-enforcement-completion.md"},
+    {id:"CORE-6", lane:"backlog", prio:"p2", proj:"core",
+     title:"QA automation: точный per-group human subtotal для Intertelecom",
+     note:"Авто-флаг расхождения по объёму (score_scope_mismatch) держится выключенным для Intertelecom, пока нет точного человеческого сабтотала по группе — нужна правка схемы review-формы.",
+     doc:"docs/planning/call-center-qa-automation/sections/section-04-block-c-discrepancy-api.md"},
+    {id:"CORE-7", lane:"backlog", prio:"p2", proj:"core",
+     title:"per-org-brands: аналитический mart dim_brands",
+     note:"Всё остальное в эпике (brand_cleanup, BrandsTab, insights_brand_guard) сделано; сам mart dim_brands остался задокументированным, но не реализованным хвостом.",
+     doc:"docs/planning/per-org-brands/2026-06-05-plan-2-brands-ui.md"},
+    {id:"CORE-8", lane:"backlog", prio:"p2", proj:"core",
+     title:"Self-improving ASR Layer B: реальное обучение LoRA",
+     note:"Скаффолд готов (SB-1..5, dry-run проверен), WORKER_LORA_ENABLED=false. Ждёт накопления данных (≥1000-2000 пар правок) + n≥30 held-out gold + GPU-инфраструктуры для реального запуска.",
+     doc:"docs/planning/self-improving-asr-2026-06-01.md"},
+    {id:"CORE-9", lane:"backlog", prio:"p2", proj:"core", statusDate:"2026-07-09",
+     title:"Проверить policy авто-добавления seed-правил per-org",
+     note:"backfill_rules_for_existing_org.py добавляет только отсутствующие common/industry codes и сначала делает dry-run; существующие operator-edited rules не меняет. До следующего rollout нужен owner decision: достаточно ли этого поведения или нужен per-org opt-out для добавления новых стандартных codes.",
+     doc:"docs/planning/tz-gap/TZ-D-six-stage-evaluation.md"},
+    {id:"CORE-10", lane:"progress", prio:"p1", proj:"core", statusDate:"2026-07-10",
+     title:"UX-аудит настроек чек-листа: формы правил малопонятны пользователю",
+     note:"Работа начата: требуется понятный workflow создания и редактирования правила, с техническими полями по умолчанию скрытыми. Есть незамерженная ветка реализации; до отдельного PR и проверки это не завершённая пользовательская функция.",
+     doc:"docs/planning/tz-gap/README.md"},
+    {id:"TZ-A", lane:"testing", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-09",
+     title:"Epic A: телефонна операційна аналітика (SL / LCR / Availability)",
+     note:"Spike подтвердил: ring-time недоступен ни у одного из 4 PBX-адаптеров (Binotel/Ringostat/Asterisk×2) — SL%/середній час відповіді полностью вне scope, не аппроксимируются. fact_calls.{disposition,started_at,intended_agent_id,direction} + mart-refresh для no-audio звонков + 4 новые метрики (calls_inbound/accepted/missed_daily, avg_call_duration_daily). LCR/Availability считаются на стороне потребителя из 2 counts (ratio-агрегации в движке нет). Дашборд-тайлы сознательно отложены до Epic E (существующий /coach/dashboard — персональный вью оператора, не подходит для org-wide KPI). Смержено #1165, локальная верификация: backend 2308+3875 pytest / ruff / mypy / registry-валидация чисто (CI billing-block, как обычно). НЕ задеплоено на прод — нужно подтверждение. Rollout PBX проверен live на gensecdev 2026-07-08: pbx_integrations_enabled=true; активны только Інфотех (asterisk) и Медичний центр (binotel), события того же дня — метрики посчитаются на реальных данных для этих 2 организаций. BSecurity (binotel disabled с 2026-06-22, ringostat pending_credentials) и Intertelecom (binotel pending_credentials) дадут пустые/нулевые телефонные тайлы — это разрыв в rollout, не баг эпика.",
+     pr:{num:1165, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1165"}},
+    {id:"TZ-D", lane:"testing", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-08",
+     title:"Epic D: 6 категорій оцінки дзвінка як іменовані етапи",
+     note:"Rule.stage (orthogonal to category) + BOOKING_PROPOSAL/OBJECTION_HANDLING/BOOKING_CONFIRMED + stage-фильтр/группировка в UI. Смержено #1162 (+ #1161 план-доки), локальная верификация: backend 2302 pytest / ruff / mypy чисто, frontend tsc/eslint/vitest чисто (CI billing-block, как обычно). Ещё НЕ задеплоено на прод — нужно подтверждение. Осталось: ручная проверка качества новых правил BOOKING_PROPOSAL/BOOKING_CONFIRMED на живых звонках перед тем, как TZ-B на них опираться.",
+     pr:{num:1162, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1162"}},
+    {id:"TZ-B", lane:"backlog", prio:"p1", proj:"tzgap", deadline:"2026-07-21",
+     title:"Epic B: конверсія в запис (%) + «упущені можливості»",
+     note:"Есть только proxy resolution_rate, самой воронки нет. Нужен надёжный сигнал «booked» и метрика eligible-and-not-booked со списком звонков. Зависит от Epic D (правило «пропозиція запису»). Оценка: M.",
+     doc:"docs/planning/tz-gap/README.md"},
+    {id:"TZ-E", lane:"done", prio:"p1", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-12",
+     title:"Epic E: дашборд керівника (конфігурований, з picker'ом періоду)",
+     note:"Изначальный фиксированный SL/LCR/конверсія/втрачені-можливості tile-set заменён на гибкий подход по прямому запросу пользователя: админ организации сам выбирает метрики из существующего реестра (10 stat_tile метрик) чекбоксами в настройках, плюс per-карточка выбор периода (день/неделя/месяц/квартал) со сравнением с предыдущим периодом и спарклайном. #1171 (база: toggle+dashboard) + #1172 (period picker) смержены и задеплоены на gensecdev. Живо проверено пользователем в собственной сессии 2026-07-12: реальный нулевой день корректно показывает «0», не «—» (найден и исправлен баг с отсутствующим date-spine в sparkline-запросах); попутно найден и исправлен ещё один скрытый баг — Postgres отклонял interval 'N quarter', квартальная гранулярность падала бы с 500 при первом реальном использовании. TZ-B (конверсия/упущенные возможности) остаётся отдельной, ещё не начатой задачей — эта эпика её НЕ закрывает.",
+     pr:{num:1172, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1172"}},
+    {id:"TZ-C", lane:"progress", prio:"p2", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-13",
+     title:"Epic C: тип клієнта - первинний / повторний / сумнівний",
+     note:"#1170 смержен: caller_phone сохраняется, а primary/repeat определяется tenant-scoped сопоставлением номера. До завершения нужно привести questionable к подтверждённому смыслу: отсутствует реальное намерение записаться, а не общий признак подозрительности или необычности; затем проверить на согласованном наборе звонков и подтвердить deploy/live behaviour.",
+     pr:{num:1170, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1170"}},
+
+    {id:"BL-1", lane:"done", prio:"p1", proj:"asr", statusDate:"2026-07-07",
+     title:"Opener_templates: экран администрирования шаблонов",
+     note:"CRUD-API (GET/PUT /admin/opener-template) + админ-экран (keyword, фразы, domain_word, режим shadow/enforce с предупреждением) + i18n uk/ru/en + врезка в сайдбар. Смержено (#1156) и задеплоено на прод (overlay-пересборка api+web): роут отвечает 401, страница 200. Проверено уровнем CI: бэкенд 31 pytest, фронт 26 vitest, tsc/ruff/mypy/eslint чисто.",
+     pr:{num:1156, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1156"}},
+    {id:"BL-2", lane:"backlog", prio:"p1", proj:"asr",
+     title:"Бюджет на расшифровку 27 отобранных звонков (R4-H7)",
+     note:"Технический отбор готов: 27 звонков нужных типов (спорный язык, низкая уверенность). Разблокируется решением о бюджете на расшифровку.",
+     pr:null},
+    {id:"BL-3", lane:"done", prio:"p2", proj:"asr", statusDate:"2026-07-07",
+     title:"Калибровочная кривая порога уверенности (TQ-11)",
+     note:"Построена строгая кривая на 46 gold-звонках (сегментная + пословная калибровка, precision/recall sweep). F1-оптимумы: -0.35 (сегмент) и 0.75 (слово); -0.25 подтверждён как пере-триггер. Прямой потребитель порога (Stage-4) убран ранее — кривая остаётся переиспользуемой основой для будущих механизмов.",
+     pr:{num:1150, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1150"}},
+    {id:"BL-4", lane:"backlog", prio:"p0", proj:"asr",
+     title:"Полное дообучение модели под телефонный звук uk/ru (T17)",
+     note:"Самый перспективный и самый дорогой путь. Нужно одобрение аренды GPU + сессия дообучения.",
+     pr:null},
+    {id:"BL-5", lane:"backlog", prio:"p2", proj:"asr",
+     title:"Сравнение с внешними коммерческими ASR-сервисами (R4-H9)",
+     note:"Ждёт решения о выделении $1-5 на пробные ключи доступа к платным сервисам.",
+     pr:null},
+
+    {id:"TEST-1", lane:"testing", prio:"p1", proj:"asr", statusDate:"2026-07-06",
+     title:"Infotech: opener-детектор — копит shadow-статистику перед enforce",
+     note:"Медцентр (domain_word) уже enforce. Инфотех (opener) деплоен 06.07 ~16:57, но за 19 звонков с деплоя — 0 сработавших кандидатов в счётчике opener_rewrite_candidates_total{kind=\"opener\"}. Данных пока мало, чтобы решать про enforce; смотрим дальше, не форсируем.",
+     pr:{num:1136, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1136"}},
+    {id:"TEST-2", lane:"testing", prio:"p2", proj:"asr", statusDate:"2026-07-03",
+     title:"R5-X4: детектор языка по каждому слову",
+     note:"99.56% точности на своих данных. Проверка на реальных звонках колл-центра ждёт ручной разметки 300 примеров.",
+     pr:null},
+
+    {id:"DONE-1", lane:"done", prio:"p1", proj:"asr", statusDate:"2026-07-07",
+     title:"Confirmed-лейн разделён: факты → Facts&foundations, живые механизмы → Shipped",
+     note:"Наведение порядка в исходной доске экспериментов.",
+     pr:{num:1148, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1148"}},
+    {id:"DONE-2", lane:"done", prio:"p1", proj:"asr", statusDate:"2026-07-06",
+     title:"Дашборды: R4-H1-open доехал до прода (фаза 3 закрыта)",
+     note:"Синхронизация markdown-досок с фактическим состоянием после деплоя.",
+     pr:{num:1137, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1137"}},
+    {id:"DONE-3", lane:"done", prio:"p0", proj:"asr", statusDate:"2026-07-06",
+     title:"QA automation: per-org порог расхождений + дашборд оператора + leaderboard",
+     note:"Стек трёх PR, замержены и задеплоены на прод.",
+     pr:{num:1131, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1131"}},
+    {id:"DONE-4", lane:"done", prio:"p1", proj:"asr", statusDate:"2026-06-30",
+     title:"Fix: reanalyze стирает reviewer-переопределения правил",
+     note:"Снапшот-по-rule_id + повторное применение. Замержен и задеплоен (в составе HEAD 06.07 после #1136).",
+     pr:{num:1088, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1088"}},
+    {id:"DONE-5", lane:"done", prio:"p2", proj:"asr", statusDate:"2026-06-30",
+     title:"Дашборд оператора: доводка (call-weighted overall + счётчик)",
+     note:"Полировка существующего дашборда QA. Замержен и задеплоен (в составе HEAD 06.07 после #1136).",
+     pr:{num:1090, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1090"}},
+  ];
+
+  const PROJ_LABEL = Object.fromEntries(PROJ.map(p => [p.key, p.label]));
+  function formatDeadline(iso){
+    const [y, m, d] = iso.split("-");
+    return `${d}.${m}`;
+  }
+  const board = document.getElementById("board");
+  const statsEl = document.getElementById("stats");
+  const prioFilterEl = document.getElementById("prio-filter");
+  const projFilterEl = document.getElementById("proj-filter");
+  const activePrio = new Set(PRIO.map(p => p.key));
+  const activeProj = new Set(PROJ.map(p => p.key));
+
+  function renderStats(){
+    statsEl.innerHTML = LANES.map(l => {
+      const n = CARDS.filter(c => c.lane === l.key).length;
+      return `<div class="stat ${l.key}"><span class="n">${n}</span><span class="l">${l.label}</span></div>`;
+    }).join("");
+  }
+
+  function renderPrioFilter(){
+    prioFilterEl.innerHTML = PRIO.map(p =>
+      `<button class="chip" type="button" data-prio="${p.key}" aria-pressed="true">${p.label}</button>`
+    ).join("");
+    prioFilterEl.querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const k = btn.dataset.prio;
+        if (activePrio.has(k)) activePrio.delete(k); else activePrio.add(k);
+        btn.setAttribute("aria-pressed", activePrio.has(k));
+        renderBoard();
+      });
+    });
+  }
+
+  function renderProjFilter(){
+    projFilterEl.innerHTML = PROJ.map(p =>
+      `<button class="chip" type="button" data-proj="${p.key}" aria-pressed="true">${p.label}</button>`
+    ).join("");
+    projFilterEl.querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const k = btn.dataset.proj;
+        if (activeProj.has(k)) activeProj.delete(k); else activeProj.add(k);
+        btn.setAttribute("aria-pressed", activeProj.has(k));
+        renderBoard();
+      });
+    });
+  }
+
+  function cardHtml(c){
+    const prioLabel = c.prio.toUpperCase();
+    let foot;
+    if (c.refs) {
+      foot = c.refs.map(r => `<a class="pr-link" href="${r.url}" target="_blank" rel="noopener">${r.label}</a>`).join(" ");
+    } else if (c.pr) {
+      foot = `<a class="pr-link" href="${c.pr.url}" target="_blank" rel="noopener">PR #${c.pr.num}</a>`;
+    } else if (c.doc) {
+      foot = `<span class="doc-ref">${c.doc}</span>`;
+    } else {
+      foot = `<span class="pr-none">нет PR/задачи</span>`;
+    }
+    const deadlineHtml = c.deadline
+      ? `<span class="deadline">сделать + оттестировать до ${formatDeadline(c.deadline)}</span>`
+      : "";
+    // statusDate = when the card last entered its current lane (testing/done).
+    // Backlog cards carry none — there's nothing to date yet.
+    const statusDateHtml = c.statusDate
+      ? `<span class="status-date ${c.lane}">${c.lane === "done" ? "виконано" : "у тестуванні з"} ${formatDeadline(c.statusDate)}</span>`
+      : "";
+    return `
+      <div class="card" data-prio="${c.prio}" data-proj="${c.proj}">
+        <div class="card-top">
+          <span class="prio ${c.prio}">${prioLabel}</span>
+          <span class="proj">${PROJ_LABEL[c.proj]}</span>
+          <span class="cid">${c.id}</span>
+        </div>
+        <h3>${c.title}</h3>
+        ${deadlineHtml}
+        ${statusDateHtml}
+        <p class="note">${c.note}</p>
+        <div class="card-foot">${foot}</div>
+      </div>`;
+  }
+
+  function renderBoard(){
+    board.innerHTML = LANES.map(l => {
+      const cards = CARDS.filter(c => c.lane === l.key && activePrio.has(c.prio) && activeProj.has(c.proj));
+      const body = cards.length
+        ? cards.map(cardHtml).join("")
+        : `<p class="col-empty">пусто</p>`;
+      return `
+        <div class="column">
+          <div class="col-head ${l.key}"><span>${l.label}</span><span class="cc">${cards.length}</span></div>
+          ${body}
+        </div>`;
+    }).join("");
+  }
+
+  renderStats();
+  renderPrioFilter();
+  renderProjFilter();
+  renderBoard();
+</script>
+</body>
+</html>

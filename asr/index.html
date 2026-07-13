@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563A8'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='Arial,sans-serif' font-size='38' font-weight='700' fill='white'%3EA%3C/text%3E%3C/svg%3E">
+<title>ASR theory dashboards - surzhyk uk/ru (kanban)</title>
+</head>
+<body>
+<style>
+  :root{
+    --paper:#EEF0F1; --panel:#F7F8F8; --ink:#161A1D; --muted:#5B676B; --faint:#8A959A;
+    --rule:#D6DADC; --accent:#0E7C86;
+    --shipped:#2E7D46; --confirmed:#2563A8; --testing:#B7791F; --retest:#6D3FA0;
+    --post-pbx:#08756A; --blocked:#64748B; --killed:#B04A4A; --idea:#9AA3A8;
+    --shipped-bg:#E4F0E8; --confirmed-bg:#E3ECF6; --testing-bg:#F6ECD9; --retest-bg:#EEE6F6;
+    --post-pbx-bg:#DFF2EF; --blocked-bg:#E9ECEF; --killed-bg:#F3E2E2; --idea-bg:#ECEEEF;
+    --facts:#3F7E8C; --facts-bg:#E4EDF0;
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--paper);}
+  .wrap{
+    max-width:92rem; margin:0 auto; padding:2.4rem 1.4rem 4rem; color:var(--ink);
+    font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  h1,h2,h3{ font-weight:650; text-wrap:balance; letter-spacing:-0.01em; }
+
+  header.top{ border-bottom:2px solid var(--ink); padding-bottom:1.3rem; margin-bottom:1.4rem; }
+  .eyebrow{ font-family:"Cascadia Code",monospace; font-size:.72rem; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--accent); display:flex; align-items:center; gap:.55em; }
+  .eyebrow::before{ content:""; width:1.6rem; height:2px; background:var(--accent); }
+  h1{ font-size:clamp(1.5rem,1.1rem+1.8vw,2.1rem); margin:.5rem 0 .3rem; line-height:1.1; }
+  .lede{ color:var(--muted); max-width:46rem; margin:0; font-size:1.02rem; }
+
+  .stats{ display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:.5rem; margin:1.4rem 0 .5rem; }
+  .stat{ background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:.7rem .6rem;
+    display:flex; flex-direction:column; gap:.15rem; }
+  .stat .n{ font-family:"Cascadia Code",monospace; font-size:1.5rem; font-weight:600;
+    font-variant-numeric:tabular-nums; line-height:1; }
+  .stat .l{ font-size:.72rem; color:var(--muted); line-height:1.15; }
+  .stat.shipped{border-top:3px solid var(--shipped);} .stat.shipped .n{color:var(--shipped);}
+  .stat.confirmed{border-top:3px solid var(--confirmed);} .stat.confirmed .n{color:var(--confirmed);}
+  .stat.testing{border-top:3px solid var(--testing);} .stat.testing .n{color:var(--testing);}
+  .stat.retest{border-top:3px solid var(--retest);} .stat.retest .n{color:var(--retest);}
+  .stat.post_pbx{border-top:3px solid var(--post-pbx);} .stat.post_pbx .n{color:var(--post-pbx);}
+  .stat.blocked{border-top:3px solid var(--blocked);} .stat.blocked .n{color:var(--blocked);}
+  .stat.killed{border-top:3px solid var(--killed);} .stat.killed .n{color:var(--killed);}
+  .stat.idea{border-top:3px solid var(--idea);} .stat.idea .n{color:var(--idea);}
+  .readline{ font-size:.95rem; color:var(--muted); margin:.9rem 0 0; max-width:52rem; }
+  .readline b{ color:var(--ink); font-weight:600; }
+
+  details.matrix{ margin:1.3rem 0 0; border:1px solid var(--rule); border-radius:3px; background:var(--panel); }
+  details.matrix > summary{ cursor:pointer; padding:.55rem .9rem; font-size:.82rem; color:var(--muted);
+    font-family:"Cascadia Code",monospace; letter-spacing:.03em; list-style:none; }
+  details.matrix > summary::-webkit-details-marker{ display:none; }
+  details.matrix > summary::before{ content:"\25B8  "; color:var(--accent); }
+  details.matrix[open] > summary::before{ content:"\25BE  "; }
+  .mtx-scroll{ overflow-x:auto; padding:0 .9rem .9rem; }
+  table.mtx{ border-collapse:collapse; width:100%; min-width:34rem; font-family:"Cascadia Code",monospace;
+    font-size:.78rem; font-variant-numeric:tabular-nums; }
+  table.mtx th,table.mtx td{ padding:.4rem .5rem; text-align:center; border-bottom:1px solid var(--rule); }
+  table.mtx th:first-child,table.mtx td:first-child{ text-align:left; white-space:nowrap; color:var(--muted); }
+  table.mtx thead th{ font-size:.68rem; color:var(--muted); font-weight:600; }
+  table.mtx td.z{ color:var(--faint); }
+  table.mtx tfoot td{ font-weight:700; border-top:2px solid var(--ink); border-bottom:none; }
+
+  /* controls */
+  .controls{ margin:1.5rem 0 .3rem; display:flex; flex-direction:column; gap:.5rem; }
+  .filter-row{ display:flex; flex-wrap:wrap; gap:.4rem; align-items:center; }
+  .filter-row .lbl{ font-size:.68rem; text-transform:uppercase; letter-spacing:.1em; color:var(--faint);
+    min-width:6.2rem; }
+  .chip{ font-family:"Cascadia Code",monospace; font-size:.76rem; padding:.26rem .55rem; border-radius:2px;
+    border:1px solid var(--rule); background:#fff; color:var(--muted); cursor:pointer; display:inline-flex;
+    gap:.4em; align-items:center; user-select:none; }
+  .chip .dot{ width:.6em; height:.6em; border-radius:50%; display:inline-block; }
+  .chip[aria-pressed="true"]{ color:var(--ink); border-color:var(--ink); background:var(--panel); font-weight:600; }
+  .chip[aria-pressed="false"]{ opacity:.5; }
+  .chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .chip .cnt{ font-variant-numeric:tabular-nums; color:var(--faint); }
+
+  /* kanban board */
+  .board{ display:flex; gap:.8rem; overflow-x:auto; padding:.4rem 0 1.2rem; align-items:flex-start;
+    scroll-snap-type:x proximity; }
+  .column{ flex:0 0 16.5rem; display:flex; flex-direction:column; gap:.55rem; scroll-snap-align:start; }
+  .column.hide{ display:none; }
+  .col-head{ display:flex; align-items:center; gap:.45rem; padding:.5rem .6rem; border-radius:3px;
+    font-family:"Cascadia Code",monospace; font-size:.8rem; font-weight:600; position:sticky; top:0; }
+  .col-head .cc{ margin-left:auto; font-variant-numeric:tabular-nums; opacity:.8; }
+  .col-head.shipped{background:var(--shipped-bg); color:var(--shipped);}
+  .col-head.confirmed{background:var(--confirmed-bg); color:var(--confirmed);}
+  .col-head.testing{background:var(--testing-bg); color:var(--testing);}
+  .col-head.retest{background:var(--retest-bg); color:var(--retest);}
+  .col-head.post_pbx{background:var(--post-pbx-bg); color:var(--post-pbx);}
+  .col-head.blocked{background:var(--blocked-bg); color:var(--blocked);}
+  .col-head.killed{background:var(--killed-bg); color:var(--killed);}
+  .col-head.idea{background:var(--idea-bg); color:var(--idea);}
+
+  .card{ background:#fff; border:1px solid var(--rule); border-radius:4px; padding:.65rem .7rem;
+    display:flex; flex-direction:column; gap:.35rem; }
+  .card.hide{ display:none; }
+  .card-top{ display:flex; align-items:center; gap:.4rem; }
+  .cid{ font-family:"Cascadia Code",monospace; font-size:.68rem; color:var(--faint); }
+  .stage-chip{ font-family:"Cascadia Code",monospace; font-size:.64rem; background:var(--panel);
+    border:1px solid var(--rule); color:var(--muted); padding:.03rem .32rem; border-radius:2px;
+    margin-left:auto; cursor:help; }
+  .card h3{ font-size:.94rem; margin:0; line-height:1.25; font-weight:600; }
+  .verdict{ font-size:.85rem; color:var(--ink); margin:0; }
+  .lineage{ font-family:"Cascadia Code",monospace; font-size:.66rem; color:var(--faint); margin:0; }
+  details.chg{ margin-top:.1rem; }
+  details.chg > summary{ font-family:"Cascadia Code",monospace; font-size:.66rem; color:var(--faint);
+    cursor:pointer; list-style:none; letter-spacing:.03em; }
+  details.chg > summary::-webkit-details-marker{ display:none; }
+  details.chg > summary::before{ content:"\25B8 "; }
+  details.chg[open] > summary::before{ content:"\25BE "; }
+  details.chg p{ font-size:.8rem; color:var(--muted); margin:.3rem 0 0; padding-top:.3rem;
+    border-top:1px dashed var(--rule); }
+  .col-empty{ color:var(--faint); font-size:.8rem; font-style:italic; padding:.3rem .2rem; }
+
+  footer{ margin-top:2rem; padding-top:1.1rem; border-top:1px solid var(--rule); color:var(--faint);
+    font-size:.8rem; font-family:"Cascadia Code",monospace; }
+  .hint{ font-size:.8rem; color:var(--faint); margin:.2rem 0 0; }
+
+  @media (max-width:640px){
+    .stats{ grid-template-columns:repeat(3,1fr); }
+    .wrap{ padding:1.6rem 1rem 3rem; }
+    .filter-row .lbl{ min-width:100%; }
+  }
+  @media (prefers-reduced-motion:reduce){ *{ scroll-behavior:auto !important; } }
+
+  .stat.facts{border-top:3px solid var(--facts);} .stat.facts .n{color:var(--facts);}
+  .col-head.facts{background:var(--facts-bg); color:var(--facts);}
+  .dot.shipped{background:var(--shipped);} .dot.confirmed{background:var(--confirmed);}
+  .dot.testing{background:var(--testing);} .dot.retest{background:var(--retest);}
+  .dot.post_pbx{background:var(--post-pbx);} .dot.blocked{background:var(--blocked);}
+  .dot.killed{background:var(--killed);} .dot.idea{background:var(--idea);}
+  .dot.facts{background:var(--facts);}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Распознавание речи · суржик uk/ru · доска экспериментов</div>
+    <h1>Что мы пробовали, чтобы лучше распознавать смешанную украинско-русскую речь</h1>
+    <p class="lede">96 карточек: исторические результаты и новые или производные кандидаты. Столбцы отделяют подтверждённые выводы от повторных проверок с обязательными условиями, зависимостей от данных АТС и независимых новых идей.</p>
+
+    <div class="stats" id="stats"></div>
+    <p class="readline" id="readline"></p>
+
+    <details class="matrix">
+      <summary>Матрица: этап × статус (сколько идей где)</summary>
+      <div class="mtx-scroll"><table class="mtx" id="mtx"></table></div>
+    </details>
+  </header>
+
+  <div class="controls">
+    <div class="filter-row" id="lane-filter"><span class="lbl">Столбцы</span></div>
+    <div class="filter-row" id="stage-filter"><span class="lbl">Этап</span></div>
+    <p class="hint">Клик по статусу скрывает столбец; клик по этапу оставляет только его карточки во всех столбцах. На карточках с повторной проверкой раскрывается обязательное условие следующего эксперимента.</p>
+  </div>
+
+  <main class="board" id="board"></main>
+
+  <footer>
+    Обновлено 2026-07-13 по deep theory audit и addendum. Эта HTML-страница - источник статусов ASR-кандидатов; пораундовые отчёты остаются источниками измерений и обоснований. Карточки «К повторной проверке» не являются подтверждёнными улучшениями: их можно запускать только после указанной проверки.
+  </footer>
+</div>
+
+<script>
+  const LANES = [
+    {key:"shipped",   label:"В проде"},
+    {key:"confirmed", label:"Подтвердилось"},
+    {key:"testing",   label:"Проверяется"},
+    {key:"retest",    label:"К повторной проверке"},
+    {key:"post_pbx",  label:"После данных АТС"},
+    {key:"blocked",   label:"Ждёт другого условия"},
+    {key:"idea",      label:"Новые идеи"},
+    {key:"killed",    label:"Не сработало"},
+    {key:"facts",     label:"Факт/основа"},
+  ];
+  const STAGES = [
+    {id:"S1", name:"Звук и нарезка"},
+    {id:"S2", name:"Расшифровка звука в текст"},
+    {id:"S3", name:"Выбор языка: uk или ru"},
+    {id:"S4", name:"Кто говорит (разделение голосов)"},
+    {id:"S5", name:"Правки расшифрованного текста"},
+    {id:"S6", name:"Языковой сигнал и данные"},
+  ];
+  const STAGE_NAME = Object.fromEntries(STAGES.map(s=>[s.id,s.name]));
+  const CARDS = [
+    {"stage":"S1","id":"F5","title_ru":"Насколько часто фильтр тишины обрезает реальную речь","lane":"facts","verdict_ru":"Подтверждено: редко, но бывает - 2 звонка из 28, в одном случае потеряно 22 из 27 секунд разговора.","change_ru":"Больший набор проверочных звонков (более шумных, с другим сжатием звука) мог бы показать долю выше 2 из 28."},
+    {"stage":"S1","id":"D1","title_ru":"Автоматическое восстановление речи, обрезанной фильтром тишины","lane":"shipped","verdict_ru":"Уже работает в проде, но собственная проверка нашла в этом коде реальную ошибку: повтор одной фразы 7 раз обманул защиту, WER (доля ошибок) выросла с 0.450 до 0.650.","change_ru":"Ошибка уже исправлена отдельной доработкой; больший набор обрезанных звонков уточнил бы итоговый эффект."},
+    {"stage":"S1","id":"T1","title_ru":"Защита от зацикленных повторов при восстановлении речи","lane":"shipped","verdict_ru":"Внедрено (PR #1114): чинит найденную ошибку, когда фраза 'Я тут.' повторялась 6 раз подряд и обманывала проверку качества.","change_ru":"Проверка на реальном GPU и код-ревью нашли ещё два скрытых бага перед выпуском - более шумный набор данных может вскрыть похожий случай."},
+    {"stage":"S1","id":"D1-tail","title_ru":"Пересборка потерянного хвоста звонка отдельным куском","lane":"shipped","verdict_ru":"Внедрено и работает: звонок восстановлен с 5 из 25 секунд до полных 25 секунд распознанной речи.","change_ru":"Проверено пока на одном звонке; распространение на другие похожие обрывы речи отдельно не измерялось."},
+    {"stage":"S1","id":"D1-guard","title_ru":"Защита от повторов - тот же механизм, отдельная карточка","lane":"shipped","verdict_ru":"Слито в код (PR #1114): проверка на реальном GPU нашла одну ошибку, ревью - другую, обе исправлены до выпуска.","change_ru":"Будущая переработка окружающего кода может незаметно вернуть один из этих багов без теста, который бы это поймал."},
+    {"stage":"S1","id":"D-2","title_ru":"Улучшение звука перед распознаванием (шумоподавление и т.п.)","lane":"killed","verdict_ru":"Тупиковый путь: шумоподавление и нормализация громкости только вредят, разбор данных для расширения частот пока не доказан.","change_ru":"Другой тип звука (не телефонный, а вещательный или чистая речь) мог бы дать другой результат - это тупик именно для телефонии."},
+    {"stage":"S1","id":"A3","title_ru":"Пересобирать только те куски записи, где модель не уверена","lane":"shipped","verdict_ru":"Базовое selective VAD recovery уже работает в production baseline. Исторические расширения механизма не показали безопасного общего выигрыша.","change_ru":"Не расширять отбор без нового замороженного набора реальных обрывов и отдельного доказательства, что расширение помогает больше чем вредит.","original_lane":"killed"},
+    {"stage":"S1","id":"T2","title_ru":"Разрешить принимать пересборку даже без роста покрытия речью","lane":"killed","verdict_ru":"На уровне идеи работает чисто, но её нельзя протестировать в реальном конвейере - нужные данные о speaker и языке нигде не сохраняются.","change_ru":"Нужно либо начать записывать эти данные при живой обработке звонков, либо провести прямой A/B-тест на живом трафике."},
+    {"stage":"S1","id":"T9","title_ru":"Проверка восстановления конкретного медицинского звонка","lane":"killed","verdict_ru":"Механизм уже работает правильно на этом звонке, но статистически один звонок не считается доказанным улучшением на всей выборке.","change_ru":"Нужно несколько похожих обрезанных звонков в наборе проверки, а не измерения на этом единственном случае."},
+    {"stage":"S1","id":"T19","title_ru":"Отдельный детектор восстановимой и невосстановимой потери речи","lane":"killed","verdict_ru":"Убито ещё на стадии идеи: всё, что он должен был измерить, уже измерено другими проверками, это просто повтор известного.","change_ru":"Другой набор звонков с большим числом пограничных случаев мог бы снова сделать такой детектор полезным."},
+    {"stage":"S1","id":"TQ-5","title_ru":"Проверка, пишет ли АТС звонки раздельно по каналам","lane":"post_pbx","verdict_ru":"На текущем одноканальном корпусе отдельные дорожки отсутствуют, поэтому техника не имела сигнала для честной проверки.","change_ru":"Проверка возможна только на контролируемых двухканальных записях после появления данных АТС.","original_lane":"killed","next_test_ru":"На заранее зарегистрированной полной двухканальной выборке учесть все eligible записи, исключить missing-leg и channel-swap, затем сравнить mono mix плюс текущую диаризацию с раздельными дорожками по WER и точности ролей.","unlock_ru":"Нужны две независимо доступные дорожки, связка каналов с ролями, tenant-scoped доступ, согласие или иное правовое основание, срок хранения, человеческие эталоны и запрет на публикацию сырых записей или идентификаторов в Git."},
+    {"stage":"S1","id":"T4","title_ru":"Ловить короткий повтор фразы внутри одного куска текста","lane":"killed","verdict_ru":"Отдельного эксперимента не требуется: оставшаяся часть идеи дублирует направление A4 и не является самостоятельной гипотезой.","change_ru":"Любая будущая проверка предыдущего текста и повторов ведётся через A4. Отдельную карточку T4 не возобновляют.","original_lane":"idea"},
+    {"stage":"S2","id":"F4","title_ru":"Два прохода распознавания (укр и рус) плюс их объединение","lane":"shipped","verdict_ru":"Главное открытие всего проекта: доля ошибок упала с 0.250 до 0.087 (примерно на 65%) - решило проблему смешения украинского и русского.","change_ru":"Более крупный или сильнее смешанный набор звонков может показать, что нужно объединять по словам, а не по участкам речи."},
+    {"stage":"S2","id":"T15","title_ru":"Пересчёт кандидатов ответа через двуязычную языковую модель","lane":"killed","verdict_ru":"Исследовательские дампы содержали дополнительные кандидаты, но текущий production wrapper не отдаёт seek-faithful n-best и scores. Карточка закрыта как дубликат R4-H2: проблема в воспроизводимом production-faithful пуле и selector, а не в одном API-вызове.","change_ru":"Дальнейшее измерение ведётся только через R4-H2 и его positional fail-open oracle.","original_lane":"blocked"},
+    {"stage":"S2","id":"TQ-12A/B/C","title_ru":"Замена модели распознавания на Parakeet при разных сценариях","lane":"killed","verdict_ru":"Сценарии зависели от положительного результата Parakeet, которого нет. Новую модель можно оценивать только как новую независимую гипотезу.","change_ru":"Не повторять эти три варианта без новой модели, обученной на украинско-русской телефонии, и нового pre-registered протокола.","original_lane":"blocked"},
+    {"stage":"S2","id":"D-1","title_ru":"Замена модели распознавания на другую (Parakeet, Canary, дообучение под русский)","lane":"killed","verdict_ru":"Широкая замена движка остаётся закрытой: Parakeet проиграл, а русская fine-tune разрушила украинскую речь. Узкий Canary-вариант вынесен в отдельную gated карточку.","change_ru":"Не возобновлять родительскую идею. Проверяется только D-1-CANARY с исправленным контрактом."},
+    {"stage":"S2","id":"D-3","title_ru":"Подсказка ключевых слов модели и расширение ширины поиска","lane":"killed","verdict_ru":"Тупик: подсказки ключевых слов уже отклонены раньше, а ширина поиска уже стоит на практическом максимуме.","change_ru":"Более позднее исследование (TQ-9) независимо подтвердило тот же отрицательный вывод на более строгом тесте."},
+    {"stage":"S2","id":"A2","title_ru":"Случайная выборка нескольких вариантов ответа вместо одного точного","lane":"killed","verdict_ru":"Явный провал: доля ошибок выросла с 0.3235 до 0.5243 (на 62% хуже), да ещё и в 4.5 раза медленнее.","change_ru":"Нужна была бы принципиально другая модель (без сжатия) - но это не совместимо с текущими требованиями к скорости."},
+    {"stage":"S2","id":"A4","title_ru":"Подбор настроек распознавания под телефонный звук","lane":"blocked","verdict_ru":"condition_on_previous_text не доказал безопасный выигрыш: исторический сигнал мал, а риск повторов остаётся. Нужен powered gold с текущей защитой от повторов.","change_ru":"Открывать эксперимент только после замороженной достаточной выборки и заранее заданных guardrails.","original_lane":"killed","next_test_ru":"На powered gold сравнить false и true при неизменной защите от повторов. Остановиться при повторном росте повторов, доверительном интервале через ноль или регрессии звонка больше трёх правок."},
+    {"stage":"S2","id":"T3","title_ru":"Повторная проверка того же параметра с фильтром повторов","lane":"killed","verdict_ru":"Результат ненадёжен - тест был испорчен багом сборки данных; более поздняя чистая проверка снова показала смешанный, не однозначный результат.","change_ru":"Нужна была чистая пересборка данных без бага - что позже и сделали, с тем же смешанным выводом."},
+    {"stage":"S2","id":"R4-H2","title_ru":"Объединение вообще всех вариантов распознавания в один лучший ответ","lane":"retest","verdict_ru":"Это не подтверждённое улучшение. Измеренные selectors были нулевыми или отрицательными, но старое сравнение candidate-only pool не включало production output и не доказывает отсутствие fail-open headroom.","change_ru":"Владелец выбрал gated retest: только дешёвый positional oracle решает, стоит ли строить selector.","original_lane":"killed","next_test_ru":"На замороженном production-faithful наборе позиционно сравнить production output с forced uk/ru, а также доступными n-best и dual streams. Production обязан быть в UNION; каждый отсутствующий stream учесть отдельно. Остановиться, если oracle не даёт минимум 8 правильных правок в 5 звонках, есть потеря покрытия, CMI drift или регрессия звонка больше трёх правок.","unlock_ru":"Нужны локально доступные, заранее одобренные и замороженные evaluation dumps с production segmentation и decode-параметрами. Новые production данные не собирать, сырые данные в Git не класть."},
+    {"stage":"S2","id":"R4-H3","title_ru":"Третий проход распознавания с обоими языковыми метками сразу","lane":"killed","verdict_ru":"Работает только на 5 из 32 сильно смешанных звонков, но на обычных звонках катастрофически хуже - в целом не окупается.","change_ru":"Больше сильно смешанных звонков в проверочном наборе могло бы изменить вывод - сейчас таких звонков слишком мало для уверенности."},
+    {"stage":"S2","id":"5M-T3","title_ru":"Включать третий языковой проход только при неясном балансе языков","lane":"killed","verdict_ru":"Историческая replacement-версия dual-token проиграла и остаётся закрытой. Отдельный additive fusion-вариант вынесен в новую gated карточку.","change_ru":"Не включать третью ветку как замену production ответа. Проверяется только 5M-T3-FUSION после positional oracle."},
+    {"stage":"S2","id":"5M-T5","title_ru":"Тест локальной аудио-модели-ИИ (Qwen3) как замены распознавания","lane":"killed","verdict_ru":"Решительный провал: доля ошибок 0.6274 - в 7 раз хуже прода, модель систематически превращает украинскую речь в русскую.","change_ru":"Большая версия этой же модели не тестировалась из-за нехватки видеопамяти - её ещё стоит попробовать позже."},
+    {"stage":"S2","id":"TQ-3","title_ru":"Проверка дополнительных технических настроек распознавания","lane":"killed","verdict_ru":"На маленькой выборке из 5 звонков ни ухудшения, ни явного улучшения не найдено - настройки оставлены по умолчанию.","change_ru":"Выборка слишком мала для уверенного вывода, но и соседние тесты не намекают на скрытый выигрыш."},
+    {"stage":"S2","id":"TQ-6","title_ru":"Проверка модели Parakeet-TDT-v3 от NVIDIA","lane":"killed","verdict_ru":"Однозначный провал: на 17-28 процентных пунктов хуже текущей модели, плюс модель путает буквы разных алфавитов.","change_ru":"Только по-настоящему новая версия Parakeet, обученная на украинском и русском, стоила бы повторной проверки."},
+    {"stage":"S2","id":"SD","title_ru":"Ускорение работы вспомогательных ИИ-моделей через черновой прогноз токенов","lane":"killed","verdict_ru":"Не дало ускорения ни при одной настройке - черновая модель слишком часто ошибается, ускорение не окупает накладные расходы.","change_ru":"Только более качественная черновая модель могла бы это изменить - это касается вспомогательных ИИ-задач, не самого распознавания речи."},
+    {"stage":"S3","id":"F6","title_ru":"Настройка перевеса в пользу украинского на пограничных звонках","lane":"shipped","verdict_ru":"Подтверждено: искусственный перевес заставляет систему выбирать украинский язык, даже когда реальные признаки чуть сильнее указывают на русский.","change_ru":"Это не изменится от размера выборки, но изменится, если сам параметр перевеса перенастроят по-другому."},
+    {"stage":"S3","id":"T7","title_ru":"Перенастройка границы принятия решения укр/рус по реальным оценкам","lane":"killed","verdict_ru":"Старый data blocker устарел, но самостоятельного эксперимента у карточки нет. Она закрыта как дубликат R4-H8/T7.","change_ru":"Пограничная калибровка проверяется только через R4-H8/T7 с заранее замороженным cohort и leave-one-call-out оценкой.","original_lane":"blocked"},
+    {"stage":"S3","id":"T5","title_ru":"Использовать двуязычную языковую модель для спорных участков речи","lane":"retest","verdict_ru":"Это не победа. Исторический data-loss blocker устранён, но ни один selector пока не превратил candidate diversity в безопасное positional recovery.","change_ru":"Владелец выбрал gated retest только после общего positional fail-open oracle.","original_lane":"blocked","next_test_ru":"На том же замороженном production-faithful наборе позиционно сравнить production UNION forced uk/ru, доступные n-best и dual streams, отдельно на спорных языковых регионах. Production обязателен в пуле, отсутствующие streams учитываются. Не строить selector без минимум 8 правильных правок в 5 звонках, без регрессии уверенных участков, потери покрытия или CMI drift.","unlock_ru":"Нужны локально доступные, заранее одобренные и замороженные evaluation dumps с production segmentation и decode-параметрами. Новые production данные не собирать, сырые данные в Git не класть."},
+    {"stage":"S3","id":"T8","title_ru":"Распространить объединение языков на звонки с одним говорящим","lane":"blocked","verdict_ru":"Заблокировано не из-за ошибки метода, а потому что в проверочном наборе нет ни одного звонка с одним говорящим - таких звонков в компании просто не бывает.","change_ru":"Нужен специально подобранный набор звонков именно с одним говорящим и смешением языков - структурно у этой организации их нет."},
+    {"stage":"S3","id":"A1","title_ru":"Выбирать лучший кусок текста по уверенности модели, а не по говорящему","lane":"killed","verdict_ru":"Явный провал: результат почти в 3 раза хуже текущего подхода, выбор оказывается верным только в 9 из 28 звонков.","change_ru":"Нужен был бы принципиально другой способ выбора (например, языковая модель или точное выравнивание по времени), а не другой набор данных."},
+    {"stage":"S3","id":"D3","title_ru":"То же самое, но выбор языка по каждому слову, а не по говорящему","lane":"killed","verdict_ru":"Худший из всех проверенных вариантов - результат в 4 раза хуже прода, катастрофа на 17 из 28 звонков.","change_ru":"Проблема структурная (плохое совмещение по времени двух текстов), другой набор данных её не исправит."},
+    {"stage":"S3","id":"T6","title_ru":"Проверять язык отдельно по каждому участку речи внутри звонка","lane":"killed","verdict_ru":"Вредно именно на том звонке, который должен был улучшить: детальная проверка по участкам ошиблась там, где общий сигнал по говорящему был прав.","change_ru":"Разные пороги чувствительности уже перепробованы без толку - нужен принципиально другой подход."},
+    {"stage":"S3","id":"R3-A","title_ru":"Проверка теории, что один проход на украинском покрывает и русский","lane":"killed","verdict_ru":"Опровергнуто: один украинский проход на 28% хуже текущего объединения, особенно плохо на явно русскоязычных говорящих.","change_ru":"Побочный вывод (что даже идеальный выбор языка почти не улучшил бы результат) может слегка измениться на другом наборе, но незначительно."},
+    {"stage":"S3","id":"R4-H8/T7","title_ru":"Повторная проверка перенастройки границы языка на реальных данных","lane":"blocked","verdict_ru":"Пограничная калибровка ждёт powered gold: исторический boundary cohort неполон, а bucket D не сохранён.","change_ru":"Сначала восстановить или заново сформировать и заморозить отдельный boundary cohort.","original_lane":"killed","next_test_ru":"Провести leave-one-call-out проверку на заранее размеченном boundary cohort, выбирая пороги без данных held-out звонка. Нужен выигрыш минимум 8 правок в 5 звонках при guardrails."},
+    {"stage":"S3","id":"R4-H8/T3","title_ru":"Более чистая повторная проверка того же параметра распознавания","lane":"killed","verdict_ru":"Небольшое общее улучшение ценой роста повторов на треть - и результат сильно скачет от звонка к звонку, поэтому не однозначный.","change_ru":"Другая подборка звонков могла бы легко перевернуть общий результат в другую сторону - эффект очень неустойчив."},
+    {"stage":"S3","id":"R5-X1","title_ru":"Сближение написания слов для честного сравнения двух языковых проходов","lane":"killed","verdict_ru":"Провал: даже намеренно грубое сближение написания слов почти не помогает отличить хорошие звонки от плохих - потолок структурный, а не от качества метода.","change_ru":"Нужен принципиально другой сигнал доверия (например, по уверенности модели в слове), а не более глубокая доработка сближения написания."},
+    {"stage":"S4","id":"D2","title_ru":"Второе мнение другой модели, когда система путает говорящих","lane":"killed","verdict_ru":"Arbiter не дал полезной word-WER массы: soft-сигнал почти не изменял решения, а pyannote-релейбл ухудшил точность ролей и здоровые звонки.","change_ru":"Новая telephony-tuned diarizer-модель будет отдельной гипотезой, а не повтором D2.","original_lane":"blocked"},
+    {"stage":"S4","id":"D4","title_ru":"Проверка речи агента срабатывает по любому говорящему на одноканальных звонках","lane":"killed","verdict_ru":"Это downstream-дубликат D2, а не самостоятельный эксперимент. Текущий fail-open путь безопаснее непроверенной автоматической переоценки ролей.","change_ru":"Не отключать fail-open без человеческой проверки нового сигнала ролей.","original_lane":"blocked"},
+    {"stage":"S4","id":"DIAR-MONO","title_ru":"Насколько часто система путает говорящих на одноканальных звонках","lane":"facts","verdict_ru":"Измеренный факт, а не действие: proxy-collapse и низкая уверенность описывают распространённость сбоя, но не доказывают качество коррекции.","change_ru":"Большая multi-org выборка может изменить распространённость. Для новой коррекции нужна отдельная человеческая role-разметка.","original_lane":"blocked"},
+    {"stage":"S5","id":"F3","title_ru":"Потолок пользы от выравнивания написания слов украинского/русского","lane":"facts","verdict_ru":"Подтверждено: убирает лишь около 1% ошибок - не рычаг для качества, но всё равно полезно для точного сравнения при проверке правил.","change_ru":"Другой тип речи (например, чистая дикторская речь) мог бы немного сдвинуть это соотношение, но вывод вряд ли изменится качественно."},
+    {"stage":"S5","id":"R4-H1-open","title_ru":"Исправление шаблонного приветствия в начале звонка","lane":"shipped","verdict_ru":"Прошла проверку на новых звонках и ВНЕДРЕНА в прод (2026-07-06): правка слова клиники уже работает по-настоящему, правка приветствий пока в теневом режиме - пишет в журнал, но текст не меняет; пороги ужесточены по реальному трафику.","change_ru":"Осталось два шага: включить боевой режим приветствий после накопления теневой статистики и сделать админ-экран для шаблонов (сейчас правки только вручную через базу)."},
+    {"stage":"S5","id":"R4-H6","title_ru":"Набор диагностических измерений: что именно ошибка, а что просто написание","lane":"shipped","verdict_ru":"Готово (это измерительный инструмент, а не сама починка): ошибки написания - лишь 1.4% всех ошибок, граница смешения языков ошибается в 4 раза чаще обычной речи.","change_ru":"Больший набор звонков с частым смешением языков мог бы уточнить именно оценку границы смешения - сейчас она основана на немногих случаях."},
+    {"stage":"S5","id":"5M-T2","title_ru":"Правка текста большой языковой моделью только на явно плохих звонках","lane":"blocked","verdict_ru":"Фильтр 'когда править' подтверждён, но сама правка держится только на большой облачной модели: она улучшала на 10 правок, а локальные модели УХУДШАЮТ на 111-123 - хуже, чем ничего (перепроверено 2026-07-06).","change_ru":"Разблокирует достаточно сильная локальная модель (аренда видеокарты) или явное решение владельца пустить внешний сервис - что против позиционирования 'всё на сервере'."},
+    {"stage":"S5","id":"5M-T4","title_ru":"Объединение исправления приветствия и правки текста моделью","lane":"blocked","verdict_ru":"Лучшая связка раунда (общая доля ошибок 0.0909 -> 0.0871) заблокирована: половине связки (правка большой моделью) нечем работать локально, вторая (приветствия) ещё в теневой проверке.","change_ru":"Откроется автоматически, когда обе составляющие пройдут свои проверки по отдельности."},
+    {"stage":"S5","id":"T14","title_ru":"Проверять уверенность модели перед правкой словаря","lane":"killed","verdict_ru":"Перепроверка на 18 новых звонках ОПРОВЕРГЛА идею: обе реальные правки словаря шли с высокой уверенностью (0.755 и 0.99) и были правильными - вето заблокировало бы обе полезные правки.","change_ru":"Оживить может только другой сигнал: отличать 'уверенно записанный бренд кириллицей' (хотим нормализовать) от настоящей ослышки - уверенность модели эту разницу не ловит; это уже новая идея."},
+    {"stage":"S5","id":"TQ-4","title_ru":"Включение словаря терминов компании (бренды, названия) в проде","lane":"shipped","verdict_ru":"Работает с 26 мая: заметно улучшило распознавание брендов на одном звонке, но более широкая позже проверка нашла лишь треть правок верными.","change_ru":"Итоговая польза сильно зависит от того, какие компании и звонки проверяют - позже добавленная защита по уверенности модели должна это улучшить."},
+    {"stage":"S5","id":"TQ-7/8","title_ru":"Инструмент для людей: одобрять или отклонять новые термины словаря","lane":"shipped","verdict_ru":"Запущено 1 июня: автоматический поиск новых терминов плюс экран для сотрудника, чтобы одобрить или отклонить каждый перед включением.","change_ru":"Польза целиком зависит от того, насколько внимательно сотрудники проверяют предложенные термины - это никак не измерялось."},
+    {"stage":"S5","id":"AV","title_ru":"Автоматическая генерация безопасных правил исправления ошибок","lane":"shipped","verdict_ru":"Полностью готово: 7 активных правил, 148 безопасных вариантов, ноль случайных повреждений на проверке из более чем 56 тысяч кусков речи.","change_ru":"Главный риск - новые типы ошибок со временем на новых звонках и компаниях, которые нынешние защитные правила не предвидели."},
+    {"stage":"S5","id":"TQ-11","title_ru":"Точная настройка порога уверенности для срабатывания правок","lane":"facts","verdict_ru":"Готово 2026-07-07: калибровочная кривая построена на 46 прод-gold-звонках (5458 слов). Оба сигнала уверенности откалиброваны. Порог -0.25 перепускает - трогает 41% всех слов, а ошибочны из них лишь ~14% (остальные и так верны); реальный излом ближе к -0.35. Уверенность - слабый детектор: даже в лучшей точке точность ~22%. F1-оптимумы: сегмент -0.35, слово 0.75.","change_ru":"Порог - это компромисс точность/полнота под риск самого корректора: для перезаписывающего (LLM) строже (-0.4), для безопасного точного совпадения мягче. Детали и таблицы: docs/baselines/asr-confidence-calibration-2026-07-07.md."},
+    {"stage":"S5","id":"C3","title_ru":"Добавить термины медицинской клиники в словарь компании","lane":"blocked","verdict_ru":"Заблокировано: у этой клиники пока нет собственного словаря терминов и нет исходного списка, откуда его взять.","change_ru":"Разблокируется, как только появится реальный список медицинских терминов и названий этой клиники."},
+    {"stage":"S5","id":"B1","title_ru":"Автоматически превращать произнесённые числа в цифры","lane":"post_pbx","verdict_ru":"Исторический корпус содержит digit-bearing ошибки, но они являются ошибками распознавания, а не чистыми formatting mismatches. Причинной поверхности для ITN пока нет.","change_ru":"Нужна контролируемая выборка с реально произнесёнными сущностями и человеческими эталонами.","original_lane":"killed","next_test_ru":"На PBX-выборке с минимум 5 звонками, содержащими проверенные целевые сущности, сравнить raw ASR и entity-aware normalization по exact match, TER и WER.","unlock_ru":"Нужны tenant-scoped данные с правовым основанием, сроком хранения и доступом по ролям, а в Git только агрегаты без звонков, номеров и текстов."},
+    {"stage":"S5","id":"B2","title_ru":"Восстановление знаков препинания и заглавных букв","lane":"killed","verdict_ru":"Не проблема: модель и так расставляет пунктуацию почти как человек - отдельная правка не меняет долю ошибок вообще.","change_ru":"Изменилось бы только при значительно более слабой базовой модели распознавания, чем используемая сейчас."},
+    {"stage":"S5","id":"C1","title_ru":"Включение полного механизма словаря терминов по умолчанию","lane":"blocked","verdict_ru":"Полный glossary-механизм нельзя включать автоматически. До решения владельца о quality gate допустим только shadow-режим и разбор органических активаций.","change_ru":"Нужны 20+ reviewed shadow activations, заранее утверждённые precision и false-fire thresholds, zero severe false fires и tenant-scoped provenance.","original_lane":"killed","next_test_ru":"После утверждения thresholds сравнить текущий bridge с context-gated shadow-вариантом по precision, false-correction rate, TER и WER на замороженной органической выборке."},
+    {"stage":"S5","id":"C2","title_ru":"Починить конкретный пример неверно распознанного названия бренда","lane":"killed","verdict_ru":"Не исправлено ни одной версией системы - причина в том, что нужный вариант слова просто никогда не попадает в словарь при его сборе.","change_ru":"Более гибкий сборщик терминов словаря мог бы поймать этот случай, но похожая попытка (T12) оказалась небезопасной в целом."},
+    {"stage":"S5","id":"T11","title_ru":"Разрешать правку бренда только рядом со словом из той же тематики","lane":"killed","verdict_ru":"Неоднозначно: направление верное, но выборка из 2-3 случаев слишком мала, а результат далёк от заявленной цели.","change_ru":"Нужна намного большая выборка реальных срабатываний словаря из живого трафика, а не заранее отобранных звонков."},
+    {"stage":"S5","id":"T12","title_ru":"Более гибкий сборщик правил словаря из многословных исправлений","lane":"killed","verdict_ru":"Широкий auto-activation multiword miner остаётся закрытым: глобальные false fires на обычных словах делают его небезопасным.","change_ru":"Отдельный review-only recurrence-вариант вынесен в T12-RECURRENCE и не включает автоматическую активацию."},
+    {"stage":"S5","id":"T20/T20a","title_ru":"Текстовое исправление приветствия по шаблону (ранняя версия)","lane":"killed","verdict_ru":"Неоднозначно: свободный порог один раз испортил правильное приветствие, строгий порог убрал ошибку, но улучшений почти нет.","change_ru":"Эта же идея позже успешно заработала в более узком виде (R4-H1-open) - это черновая версия, а не тупик для приветствий вообще."},
+    {"stage":"S5","id":"T10","title_ru":"Небольшой словарь медицинской клиники на основе известных ошибок","lane":"killed","verdict_ru":"Убито ещё на стадии идеи: построена на неверном предположении, что у клиники нет обычных слов для замены - на деле уже есть 218 таких терминов.","change_ru":"Нужен настоящий медицинский словарь не из подсмотренных проверочных звонков, а из независимого источника."},
+    {"stage":"S5","id":"T13","title_ru":"Защита от потери коротких слов в старом механизме исправлений","lane":"killed","verdict_ru":"Убито из-за ошибки в диагнозе: найденные примеры порчи слов происходят из другого механизма, не того, который эта идея чинила.","change_ru":"Похожая защита (минимальная длина слова) уже пробовалась и была отменена трижды - не решает проблему до конца."},
+    {"stage":"S5","id":"T16","title_ru":"Сверка трёх версий текста по словам для поиска общих ошибок","lane":"killed","verdict_ru":"Убито ещё на стадии идеи: использует тот же неудачный способ совмещения текста, что и худший вариант из другой убитой идеи.","change_ru":"Ожидаемый эффект настолько мал, что даже правильная версия идеи вряд ли была бы доказуема на текущем наборе звонков."},
+    {"stage":"S5","id":"R4-H1-close","title_ru":"Исправление прощания в конце звонка (по образцу приветствия)","lane":"killed","verdict_ru":"Не сработало: доля ошибок выросла, 22 звонка стали хуже - в прощании модель почти всегда права, просто выбирает не ту вежливую формулу.","change_ru":"Нужен подход, основанный на уверенности модели в звуке, а не на сравнении текста с шаблоном - такого ещё не пробовали для прощания."},
+    {"stage":"S5","id":"R4-H4","title_ru":"Правка всех звонков большой языковой моделью без разбора","lane":"killed","verdict_ru":"Не дотянуло до планки: помогает на плохих звонках, но испортило один почти идеальный звонок - именно это привело к идее фильтра по качеству.","change_ru":"Эта же правка с добавленным фильтром (5M-T2) уже проверена отдельно и превратила минус в плюс."},
+    {"stage":"S5","id":"5M-T1 (CGP)","title_ru":"Править прод только там, где оба языковых прохода сходятся","lane":"killed","verdict_ru":"Вредно: из 12 сработавших правок 10 заменили правильные, живые слова на \"причёсанные\" словарные - совпадение проходов не значит правоту.","change_ru":"Порог совпадения тут не поможет - само согласие двух проходов оказалось неверным сигналом, нужен принципиально другой критерий доверия."},
+    {"stage":"S5","id":"TQ-9","title_ru":"Смена способа подсказки терминов модели на встроенный API","lane":"blocked","verdict_ru":"Исторический hotword-результат отрицательный: term recall вырос, но WER ухудшился, а runtime и crash-конфаунды не позволяют честно интерпретировать эффект.","change_ru":"Сначала нужен стабильный GPU runtime и powered cohort с документированным WER guard.","original_lane":"killed","next_test_ru":"На одном стабильном GPU сравнить текущую подсказку и короткий hotword-список. Остановиться при первом сбое, delta-WER больше 0.02 или регрессии чистого контрольного звонка."},
+    {"stage":"S5","id":"TQ-10","title_ru":"Дополнительный проход большой языковой модели поверх готового текста","lane":"killed","verdict_ru":"Полностью убрано: примерно половина \"исправлений\" на деле оказались незаметным переводом с одного языка на другой, а не правкой ошибок.","change_ru":"Современная версия с защитой от перевода языка уже проверена отдельно (5M-T2) и работает - это старая версия без такой защиты."},
+    {"stage":"S6","id":"F1","title_ru":"Реальная доля ошибок на проверенных человеком звонках","lane":"facts","verdict_ru":"Подтверждено: типичный звонок имеет долю ошибок 8.5%, но среднее значение выше (18.8%) из-за нескольких особо трудных коротких звонков.","change_ru":"Это базовая точка отсчёта - изменится сама по себе, если изменится состав проверочного набора звонков."},
+    {"stage":"S6","id":"F2","title_ru":"Главная причина ошибок - похожие по звучанию слова, а не потеря текста","lane":"facts","verdict_ru":"Подтверждено: основная масса ошибок - это модель, которая ошибается словом из-за плохого качества телефонного звука, а не теряет текст целиком.","change_ru":"Изменится только с другим типом звука (например, более чистая, не телефонная запись) или после починки распознавания говорящих."},
+    {"stage":"S6","id":"T18","title_ru":"Сколько звонков нужно, чтобы доверять результату проверки","lane":"facts","verdict_ru":"Ключевой вывод: любое улучшение должно затрагивать минимум 4-5 разных звонков, иначе его нельзя статистически доказать - неважно, насколько оно велико.","change_ru":"Это свойство статистики при маленькой выборке - изменится только при расширении проверочного набора звонков, не от типа звука."},
+    {"stage":"S6","id":"E1","title_ru":"Расширение проверочного набора звонков и системы мониторинга","lane":"shipped","verdict_ru":"Готово: 33 проверенных человеком звонка теперь база для всех измерений, плюс восстановлена система мониторинга общего состояния.","change_ru":"Ценность держится на том, что мониторинг реально работает в проде и набор звонков не становится устаревшим со временем."},
+    {"stage":"S6","id":"TQ-1","title_ru":"Метрика точности распознавания именно брендов и важных терминов","lane":"shipped","verdict_ru":"Внедрено: добавлена отдельная метрика, которая ценит потерю названия бренда сильнее, чем потерю обычного служебного слова.","change_ru":"Точность метрики зависит от качества списка важных терминов - более полный список сделает её точнее без изменения кода."},
+    {"stage":"S6","id":"TQ-2","title_ru":"Расследование резкого скачка ошибок на одном звонке в проде","lane":"shipped","verdict_ru":"Решено: причиной был \"холодный старт\" сервера после обновления, из-за которого терялось начало первого звонка - добавлен разогревочный звонок.","change_ru":"Может повториться только если будущее обновление системы развёртывания случайно уберёт этот разогревочный шаг."},
+    {"stage":"S6","id":"TQ-16/17","title_ru":"Сбор и еженедельный разбор правок операторов для обучения системы","lane":"shipped","verdict_ru":"Запущено: правки операторов теперь сохраняются в базу и используются для предложений по словарю вместо того, чтобы просто теряться.","change_ru":"Польза целиком зависит от накопления объёма правок со временем - на момент проверки база была почти пустой."},
+    {"stage":"S6","id":"R5-X4","title_ru":"Проверка качества инструмента распознавания языка по каждому слову","lane":"testing","verdict_ru":"Частично готово: на своих \"домашних\" данных точность 99.56%, но проверка на реальных звонках колл-центра ждёт ручной разметки человеком.","change_ru":"Разблокируется сразу, как только владелец заполнит подготовленный набор из 300 примеров вручную."},
+    {"stage":"S6","id":"F1-r1","title_ru":"Дообучение модели на специально подготовленных синтетических данных","lane":"blocked","verdict_ru":"Только план: рецепт есть (сжатие звука как в телефонии плюс смешение украинского с русским), но нужно оборудование и время специалиста для запуска.","change_ru":"Условие для запуска (что более дешёвые способы уже исчерпаны) уже выполнено - остался только вопрос бюджета на видеокарту."},
+    {"stage":"S6","id":"T17","title_ru":"Полноценное дообучение модели под телефонный звук (укр+рус)","lane":"blocked","verdict_ru":"Вне текущего объёма работ: нужна отдельная сессия с арендой видеокарты - это самый перспективный, но и самый дорогой путь улучшения из всех.","change_ru":"Нужно одобрение аренды видеокарты плюс больше данных именно по трудному медицинскому направлению."},
+    {"stage":"S6","id":"R4-H5","title_ru":"Проверка готовности данных для дообучения модели, этап 0","lane":"blocked","verdict_ru":"Готово с неприятным открытием: есть 1801 звонок (73 часа) подходящих данных, но стандартный способ отбора качественных данных для этой языковой пары не работает.","change_ru":"Нужен принципиально другой способ отбора качественных данных - основанный на уверенности модели, а не на совпадении двух проходов."},
+    {"stage":"S6","id":"R4-H7","title_ru":"Точечный отбор новых звонков для расширения проверочного набора","lane":"blocked","verdict_ru":"Готово: найдено 27 конкретных звонков нужных типов (мало покрытые, спорный язык, низкая уверенность) - осталось только оплатить их расшифровку человеком.","change_ru":"Разблокируется чисто решением владельца выделить бюджет на расшифровку - техническая работа уже сделана."},
+    {"stage":"S6","id":"R4-H9","title_ru":"Сравнение с внешними коммерческими сервисами распознавания речи","lane":"blocked","verdict_ru":"Ждёт решения: нужны ключи доступа к платным сервисам (примерно 1-5 долларов), которых сейчас нет - продукт работает только на своих серверах.","change_ru":"Разблокируется решением владельца одобрить небольшую разовую оплату и предоставить доступ к внешним сервисам."},
+    {"stage":"S6","id":"R5-X2","title_ru":"Выбор, как записывать обучающие примеры - точно как слышно или \"причёсанно\"","lane":"blocked","verdict_ru":"Не проверено: нужны реальные правки операторов, которых пока почти нет в базе данных - без них нельзя понять, как люди сами исправляют текст.","change_ru":"Разблокируется либо накоплением реальных правок со временем, либо прямым тестом после одобрения аренды видеокарты."},
+    {"stage":"S6","id":"R5-X3","title_ru":"Проверка, достаточно ли в наборе примеров переключения языка для анализа","lane":"blocked","verdict_ru":"Обнаружено: в проверочном наборе всего 60 настоящих переключений языка при необходимых минимум 100 - сам анализ интонации решили не запускать.","change_ru":"Нужно расшифровать ещё примерно 60-70% таких переключений сверху - конкретный список кандидатов для этого уже есть."},
+    {"stage":"S6","id":"TQ-13/14/15","title_ru":"Полный конвейер дообучения модели с постепенным включением в проде","lane":"blocked","verdict_ru":"Заготовка сделана и выключена по умолчанию, но реальное обучение отложено - оказалось, что качество распознавания уже близко к изначальной годовой цели.","change_ru":"Нужны тысячи обучающих примеров, десятки дважды проверенных звонков и аренда видеокарты для обучения."},
+    {"stage":"S6","id":"R3-B","title_ru":"Проверка, не \"заточена\" ли система только под одну знакомую компанию","lane":"post_pbx","verdict_ru":"Историческая трёхзвонковая выборка не была реальной matched новой организацией, поэтому не подтверждает и не опровергает domain-transfer gap.","change_ru":"Нужна реальная новая организация и matched сравнение с действующими организациями.","original_lane":"killed","next_test_ru":"На минимум 30 дважды проверенных звонках реальной новой Asterisk-организации, зачисленных подряд по заранее объявленному правилу, сравнить с matched выборкой действующих организаций по pooled и per-call WER. Остановиться, если matching не завершён или cohort недобран.","unlock_ru":"Нужны consent или иное правовое основание, срок хранения, tenant-scoped доступ, агрегаты без идентификаторов в Git, дословные эталоны и заранее согласованный план matching по длительности, кодеку, языкам и режиму каналов."},
+    {"stage":"S6","id":"R5-X5","title_ru":"Проверка лингвистической теории про распределение ролей слов в суржике","lane":"killed","verdict_ru":"Не подтвердилось: одна часть теории верна по направлению, но слишком слаба по силе эффекта и сильно разнится между компаниями.","change_ru":"Проверка на в 127 раз большем внешнем наборе данных дала тот же слабый результат - маловероятно, что другой набор данных изменит вывод."},
+    {"stage":"S6","id":"R5-X6","title_ru":"Проверка той же теории на большом внешнем массиве текстов парламента","lane":"killed","verdict_ru":"Не подтвердилось даже на данных в 127 раз больше - эффект слабый и слабее не становится сильнее от объёма; отдельно список терминов тоже не набрал нужного количества.","change_ru":"Нужен принципиально другой источник данных - тот же источник уже показал, что дело не в размере выборки."},
+    {"stage":"S6","id":"D-4","title_ru":"Дообучение на искусственно склеенных из одноязычных кусков записях","lane":"killed","verdict_ru":"Локального выигрыша не доказано: monolingual fine-tuning ухудшил MER, а splicing лишь частично исправил этот провальный вариант и остался хуже pretrained baseline.","change_ru":"Внешний домен не доказывает локальную пользу. Нужен принципиально другой in-domain telephony рецепт."},
+    {"stage":"S1","id":"TRUNC-REDECODE","title_ru":"Повторное распознавание обрыва внутри звонка","lane":"retest","verdict_ru":"Новый механизм выглядит полезным только на нескольких случаях. Владелец выбрал experiment-first, а не немедленную реализацию.","change_ru":"Нужны аудио-проверка, end-to-end re-decode и строгие no-regression guardrails.","next_test_ru":"На замороженных вручную проверенных обрывах сначала подтвердить, что в пропуске есть распознаваемая речь, затем сравнить current production и re-decode по pooled и per-call WER с полным учётом выбранных случаев. Остановиться при любой guardrail-регрессии или отсутствии подтверждённой речи.","unlock_ru":"Нужны локально доступные, заранее одобренные аудио и человеческие эталоны для замороженного cohort. Новые production данные не собирать, сырые данные в Git не класть."},
+    {"stage":"S5","id":"TENANT-GLOSSARY","title_ru":"Точечное расширение словаря выбранной организации","lane":"retest","parent_ids":["TQ-4"],"verdict_ru":"Новый tenant-scoped вариант: расширять только проверяемые recurring формы выбранной организации, без fuzzy matching и без изменений вне неё.","change_ru":"Это развитие уже работающего glossary, а не возврат широких небезопасных правил.","next_test_ru":"В shadow-режиме сравнить текущий словарь и точные новые правила на независимой выборке активаций. Нужны 100% human review, FCR не выше 0.10 и отсутствие изменений вне выбранной организации; остановиться при первом severe false fire.","unlock_ru":"Нужны tenant-scoped активации с правовым основанием, сроком хранения и review provenance. В Git допускаются только агрегаты без записей, номеров и текстов."},
+    {"stage":"S6","id":"IN-DOMAIN-LORA","title_ru":"In-domain LoRA с mixed rehearsal","lane":"blocked","verdict_ru":"Потенциально крупный lever, но текущих in-domain звонков недостаточно для powered holdout и защиты от code-switch regression.","change_ru":"Нужны согласованные данные, GPU, powered holdout и отдельный учёт non-truncation ошибок.","next_test_ru":"После подготовки holdout сравнить pretrained и mixed-rehearsal LoRA с per-org WER, MER и LANG_SWAP guardrails."},
+    {"stage":"S6","id":"SSL-PRETRAIN","title_ru":"Self-supervised continued pretraining для телефонии","lane":"blocked","verdict_ru":"Локальный эффект ещё не измерен. Для текущего Whisper-стека нет готового label-free рецепта, а доступный корпус требует проверки качества и правового основания.","change_ru":"Не запускать без подтверждённого usable speech corpus, GPU, privacy gate и отдельного технического решения для model family.","next_test_ru":"После исключения gold и manual-edit данных из одобренного локального корпуса выбрать совместимый model family и провести маленький paired decode-level pilot. Остановиться, если нет направленного выигрыша, появляются code-switch regressions или аудио выходит за разрешённый контур."},
+    {"stage":"S2","id":"ROVER-HETERO","title_ru":"Heterogeneous ROVER как второе мнение","lane":"blocked","verdict_ru":"Не измерено. Сначала нужен локальный бесплатный oracle, который покажет уникальные правильные токены стороннего потока относительно production.","change_ru":"Не строить selector и не отправлять данные во внешний сервис до отдельного privacy и owner approval.","next_test_ru":"После отдельного разрешения выполнить positional fail-open oracle на локально хранимых одобренных frozen dumps без новых production данных и без сырых данных в Git."},
+    {"stage":"S2","id":"5M-T3-FUSION","title_ru":"Dual-token только как дополнительный fusion-кандидат","lane":"retest","parent_ids":["5M-T3"],"verdict_ru":"Новый additive вариант не измерен. Провальный historical replacement не отвечает на вопрос о дополнительном кандидате внутри production fusion.","change_ru":"Владелец выбрал retest только после общего positional fail-open oracle.","next_test_ru":"На замороженном production-faithful наборе позиционно сравнить production output с forced uk/ru, доступными n-best и dual streams. Production обязателен в UNION; каждый отсутствующий stream учесть отдельно. Не строить fusion selector без минимум 8 правильных правок в 5 звонках и остановиться при первой guardrail-регрессии, потере покрытия или CMI drift.","unlock_ru":"Нужны локально доступные, заранее одобренные и замороженные evaluation dumps с production segmentation и decode-параметрами. Новые production данные не собирать, сырые данные в Git не класть."},
+    {"stage":"S2","id":"D-1-CANARY","title_ru":"Canary с явной маршрутизацией украинского и русского","lane":"retest","parent_ids":["D-1"],"verdict_ru":"Новый кандидат, не победа. n=29 надёжно отвергает две старые реализации, но per-turn путь молча терял turns, поэтому это не theory-level kill.","change_ru":"Владелец выбрал corrected-contract retest вместо широкого возврата engine swap.","next_test_ru":"Только materially distinct checkpoint или routing сравнить с текущим fused production pipeline в guarded A/B минимум на 20 звонках. Для каждого speaker или непрерывного региона учесть submitted, decoded, skipped и failed turns, сохранить покрытие и проверить monolingualization. Остановиться при любом неучтённом регионе, потере покрытия или guardrail-регрессии.","unlock_ru":"Нужны локально доступный, заранее одобренный и замороженный cohort из минимум 20 звонков, current fused outputs и per-region audit. Новые production данные не собирать, сырые данные в Git не класть."},
+    {"stage":"S5","id":"R4-H1-CLOSE-A","title_ru":"Acoustic или n-best защита для исправления прощаний","lane":"blocked","parent_ids":["R4-H1-close"],"verdict_ru":"Это отдельный mechanism, не возврат text-only корректора. Current closing и switch surfaces являются нижними границами, потому что insertions были исключены классификатором.","change_ru":"До любого теста нужно якорить insertion-ошибки по предыдущему aligned reference token или вручную проверенному эквиваленту.","next_test_ru":"После insertion anchoring и powered gold сравнить production, провальный text-only вариант и acoustic или n-best gate на реальных closing-ошибках и обычных прощаниях."},
+    {"stage":"S5","id":"T12-RECURRENCE","title_ru":"Multiword mining только после независимых повторов","lane":"post_pbx","parent_ids":["T12"],"verdict_ru":"Новый review-only механизм: правило появляется только после независимого подтверждённого повтора, а не автоматически из одной правки.","change_ru":"Это не возвращает старый auto-activation miner и не включает автоматические изменения production.","next_test_ru":"В review-only режиме сравнить strict miner и recurrence-gated вариант по precision и full-corpus collateral. Остановиться при первом глобальном false fire на обычном слове.","unlock_ru":"Нужны контролируемый PBX rollout, consent и retention policy, tenant-scoped provenance, независимые подтверждения минимум из двух разных звонков и источников, а в Git только агрегаты без звонков, номеров и текстов."},
+  ];
+
+  // stats
+  const htmlEscapes={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"};
+  function escapeHtml(value){
+    return String(value).replace(/[&<>"']/g,character=>htmlEscapes[character]);
+  }
+  const counts={}; LANES.forEach(l=>counts[l.key]=0);
+  CARDS.forEach(c=>counts[c.lane]=(counts[c.lane]||0)+1);
+  const statLabels={
+    shipped:"в проде",confirmed:"подтвердилось",testing:"проверяется",retest:"к повторной проверке",
+    post_pbx:"после данных АТС",blocked:"ждёт условия",killed:"не сработало",idea:"новые идеи",facts:"факт/основа"
+  };
+  document.getElementById("stats").innerHTML=LANES.map(l=>
+    `<div class="stat ${l.key}"><span class="n">${counts[l.key]||0}</span><span class="l">${escapeHtml(statLabels[l.key])}</span></div>`).join("");
+  const total=CARDS.length;
+  document.getElementById("readline").innerHTML=
+    `Из <b>${total}</b> идей <b>${counts.killed||0}</b> - проверенные тупики (ценно: не переделывать заново). `+
+    `<b>${(counts.shipped||0)+(counts.confirmed||0)}</b> сработали (${counts.shipped||0} уже в проде), в основном в правках текста после распознавания. `+
+    `<b>${counts.retest||0}</b> вынесены в повторную проверку с обязательным gate, а <b>${counts.post_pbx||0}</b> ждут данных АТС.`;
+
+  // matrix
+  const perSL={}; STAGES.forEach(s=>{perSL[s.id]={};LANES.forEach(l=>perSL[s.id][l.key]=0);});
+  CARDS.forEach(c=>{ if(perSL[c.stage]) perSL[c.stage][c.lane]++; });
+  const mtx=document.getElementById("mtx");
+  mtx.innerHTML=`<thead><tr><th>Этап</th>${LANES.map(l=>`<th>${escapeHtml(l.label)}</th>`).join("")}<th>Всего</th></tr></thead>`+
+    "<tbody>"+STAGES.map(s=>{
+      const row=LANES.map(l=>{const n=perSL[s.id][l.key];return `<td class="${n?'':'z'}">${n||"·"}</td>`;}).join("");
+      const tot=LANES.reduce((a,l)=>a+perSL[s.id][l.key],0);
+      return `<tr><td>${escapeHtml(s.id)} ${escapeHtml(STAGE_NAME[s.id])}</td>${row}<td>${tot}</td></tr>`;
+    }).join("")+"</tbody>"+
+    `<tfoot><tr><td>Всего</td>${LANES.map(l=>`<td>${counts[l.key]||0}</td>`).join("")}<td>${total}</td></tr></tfoot>`;
+
+  // board: one column per lane
+  const stageOrder=Object.fromEntries(STAGES.map((s,i)=>[s.id,i]));
+  const board=document.getElementById("board");
+  board.innerHTML=LANES.map(l=>{
+    const cs=CARDS.filter(c=>c.lane===l.key).sort((a,b)=>stageOrder[a.stage]-stageOrder[b.stage]);
+    const cards=cs.map(c=>`
+      <article class="card" data-lane="${escapeHtml(c.lane)}" data-stage="${escapeHtml(c.stage)}">
+        <div class="card-top">
+          <span class="cid">${escapeHtml(c.id)}</span>
+          <span class="stage-chip" title="${escapeHtml(STAGE_NAME[c.stage])}">${escapeHtml(c.stage)}</span>
+        </div>
+        <h3>${escapeHtml(c.title_ru)}</h3>
+        <p class="verdict">${escapeHtml(c.verdict_ru)}</p>
+        ${c.parent_ids?.length?`<p class="lineage">Связано с: ${escapeHtml(c.parent_ids.join(", "))}</p>`:""}
+        ${c.original_lane?`<p class="lineage">Исторический статус: ${escapeHtml(LANES.find(l=>l.key===c.original_lane)?.label||c.original_lane)}</p>`:""}
+        ${c.next_test_ru?`<details class="chg"><summary>следующая проверка</summary><p>${escapeHtml(c.next_test_ru)}</p>${c.unlock_ru?`<p>${escapeHtml(c.unlock_ru)}</p>`:""}</details>`:""}
+        ${c.change_ru?`<details class="chg"><summary>что изменит вывод</summary><p>${escapeHtml(c.change_ru)}</p></details>`:""}
+      </article>`).join("");
+    return `<section class="column" data-lane="${l.key}">
+      <div class="col-head ${l.key}"><span class="dot ${l.key}"></span>${escapeHtml(l.label)}<span class="cc" data-lane="${l.key}">${cs.length}</span></div>
+      ${cards||'<p class="col-empty">Пока нет карточек.</p>'}
+    </section>`;
+  }).join("");
+
+  // filters
+  const activeLanes=new Set(LANES.map(l=>l.key));
+  const activeStages=new Set(STAGES.map(s=>s.id));
+  const laneBar=document.getElementById("lane-filter");
+  LANES.forEach(l=>{
+    const b=document.createElement("button");
+    b.className="chip"; b.setAttribute("aria-pressed","true"); b.dataset.lane=l.key;
+    b.innerHTML=`<span class="dot ${l.key}"></span>${escapeHtml(l.label)} <span class="cnt">${counts[l.key]||0}</span>`;
+    b.addEventListener("click",()=>{ toggle(activeLanes,l.key,b); applyLanes(); });
+    laneBar.appendChild(b);
+  });
+  const stageBar=document.getElementById("stage-filter");
+  STAGES.forEach(s=>{
+    const n=CARDS.filter(c=>c.stage===s.id).length;
+    const b=document.createElement("button");
+    b.className="chip"; b.setAttribute("aria-pressed","true"); b.dataset.stage=s.id;
+    b.innerHTML=`${escapeHtml(s.id)} ${escapeHtml(s.name)} <span class="cnt">${n}</span>`;
+    b.addEventListener("click",()=>{ toggle(activeStages,s.id,b); applyStages(); });
+    stageBar.appendChild(b);
+  });
+  function toggle(set,key,btn){
+    if(set.has(key)){set.delete(key);btn.setAttribute("aria-pressed","false");}
+    else{set.add(key);btn.setAttribute("aria-pressed","true");}
+  }
+  function applyLanes(){
+    document.querySelectorAll(".column").forEach(col=>{
+      col.classList.toggle("hide", !activeLanes.has(col.dataset.lane));
+    });
+  }
+  function applyStages(){
+    document.querySelectorAll(".card").forEach(c=>{
+      c.classList.toggle("hide", !activeStages.has(c.dataset.stage));
+    });
+    document.querySelectorAll(".col-head .cc").forEach(cc=>{
+      const lane=cc.dataset.lane;
+      const vis=[...document.querySelectorAll(`.card[data-lane="${lane}"]`)].filter(c=>!c.classList.contains("hide")).length;
+      cc.textContent=vis;
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+name: Pages
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Stage public site
+        run: |
+          if find index.html asr call-ai skud -type l -print -quit | grep -q .; then
+            echo "refusing to stage symlinked public content" >&2
+            exit 1
+          fi
+
+          for file in index.html asr/index.html call-ai/index.html skud/index.html; do
+            if [ ! -f "$file" ]; then
+              echo "not a regular file: $file" >&2
+              exit 1
+            fi
+          done
+
+          rm -rf _site
+          mkdir -p _site/asr _site/call-ai _site/skud
+          install -m 0644 index.html _site/index.html
+          install -m 0644 asr/index.html _site/asr/index.html
+          install -m 0644 call-ai/index.html _site/call-ai/index.html
+          install -m 0644 skud/index.html _site/skud/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
