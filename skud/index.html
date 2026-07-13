@@ -1,0 +1,1448 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%231c2428'/%3E%3Cpath d='M15 17h34v7H15zm0 12h22v7H15zm0 12h29v7H15z' fill='%23d5a439'/%3E%3C/svg%3E">
+<title>BST SKUD + T&A · execution board</title>
+<style>
+  :root {
+    --paper: #e8e5dc;
+    --paper-deep: #d9d4c7;
+    --panel: #f5f2e9;
+    --card: #fffdf7;
+    --ink: #172024;
+    --ink-soft: #344146;
+    --muted: #687479;
+    --faint: #8d9698;
+    --rule: #c7c3b8;
+    --rule-dark: #8c918e;
+    --signal: #d5a439;
+    --signal-dark: #8d6412;
+    --danger: #a33b32;
+    --danger-bg: #f2dfd9;
+    --backlog: #63717a;
+    --backlog-bg: #dfe3e3;
+    --ready: #21766e;
+    --ready-bg: #d8e9e5;
+    --progress: #256694;
+    --progress-bg: #dce8f0;
+    --testing: #a56a13;
+    --testing-bg: #f2e6cf;
+    --blocked: #a33b32;
+    --blocked-bg: #f2dfd9;
+    --done: #3f744e;
+    --done-bg: #dce9df;
+    --p0: #9e332c;
+    --p0-bg: #f2ddd8;
+    --p1: #936214;
+    --p1-bg: #f3e5c9;
+    --p2: #53646c;
+    --p2-bg: #e2e6e6;
+    --shadow: 0 10px 30px rgba(28, 37, 40, .07);
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html {
+    min-width: 300px;
+    background: var(--paper);
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      linear-gradient(rgba(23, 32, 36, .025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(23, 32, 36, .025) 1px, transparent 1px),
+      radial-gradient(circle at 12% -10%, rgba(213, 164, 57, .18), transparent 31rem),
+      var(--paper);
+    background-size: 28px 28px, 28px 28px, auto, auto;
+    font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.46;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .shell {
+    width: min(100%, 106rem);
+    margin: 0 auto;
+    padding: 24px 22px 64px;
+  }
+
+  .mono,
+  .eyebrow,
+  .branch,
+  .metric-value,
+  .lane-head,
+  .card-id,
+  .tag,
+  .date-row,
+  .filter-label,
+  .protocol-step,
+  .source-link,
+  .readiness-code {
+    font-family: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
+  }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: end;
+    padding: 18px 0 22px;
+    border-top: 5px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 13px;
+    color: var(--signal-dark);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    width: 28px;
+    height: 3px;
+    content: "";
+    background: var(--signal);
+  }
+
+  h1 {
+    max-width: 780px;
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(34px, 5vw, 72px);
+    font-weight: 500;
+    letter-spacing: -.045em;
+    line-height: .92;
+    text-wrap: balance;
+  }
+
+  .lede {
+    max-width: 720px;
+    margin: 18px 0 0;
+    color: var(--ink-soft);
+    font-size: clamp(15px, 1.2vw, 18px);
+  }
+
+  .snapshot {
+    width: min(100%, 330px);
+    padding: 16px 17px;
+    border: 1px solid var(--rule-dark);
+    border-top: 4px solid var(--danger);
+    background: rgba(255, 253, 247, .72);
+    box-shadow: var(--shadow);
+  }
+
+  .snapshot-state {
+    display: flex;
+    gap: 11px;
+    align-items: center;
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .snapshot-state::before {
+    width: 10px;
+    height: 10px;
+    content: "";
+    border: 2px solid var(--danger);
+    border-radius: 50%;
+    background: var(--danger);
+    box-shadow: 0 0 0 4px var(--danger-bg);
+  }
+
+  .snapshot dl {
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 7px 12px;
+    margin: 15px 0 0;
+    font-size: 12px;
+  }
+
+  .snapshot dt {
+    color: var(--faint);
+  }
+
+  .snapshot dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-weight: 650;
+  }
+
+  .snapshot a {
+    color: var(--signal-dark);
+    text-underline-offset: 3px;
+  }
+
+  .strategy {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    margin: 18px 0 0;
+    padding: 12px 15px;
+    border-left: 4px solid var(--signal);
+    background: rgba(255, 253, 247, .62);
+  }
+
+  .strategy strong {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .strategy span {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(108px, 1fr));
+    gap: 8px;
+    margin: 22px 0 0;
+  }
+
+  .metric {
+    min-height: 84px;
+    padding: 12px 13px 10px;
+    border: 1px solid var(--rule);
+    border-top: 4px solid var(--lane-color, var(--rule-dark));
+    background: rgba(245, 242, 233, .88);
+  }
+
+  .metric-value {
+    display: block;
+    color: var(--lane-color, var(--ink));
+    font-size: 27px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .metric-label {
+    display: block;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .metric.backlog { --lane-color: var(--backlog); }
+  .metric.ready { --lane-color: var(--ready); }
+  .metric.progress { --lane-color: var(--progress); }
+  .metric.testing { --lane-color: var(--testing); }
+  .metric.blocked { --lane-color: var(--blocked); }
+  .metric.done { --lane-color: var(--done); }
+  .metric.ratio { --lane-color: var(--signal-dark); }
+
+  .focus {
+    margin: 28px 0 0;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #f8f4e9;
+    box-shadow: var(--shadow);
+  }
+
+  .focus-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, .19);
+  }
+
+  .focus-head h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 21px;
+    font-weight: 500;
+  }
+
+  .readiness-code {
+    color: #e4bd62;
+    font-size: 11px;
+    letter-spacing: .08em;
+  }
+
+  .focus-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .focus-item {
+    position: relative;
+    min-height: 116px;
+    padding: 17px 18px 17px 56px;
+    border-right: 1px solid rgba(255, 255, 255, .16);
+  }
+
+  .focus-item:last-child {
+    border-right: 0;
+  }
+
+  .focus-num {
+    position: absolute;
+    top: 18px;
+    left: 17px;
+    color: #e4bd62;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 27px;
+    line-height: 1;
+  }
+
+  .focus-item strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    letter-spacing: .015em;
+  }
+
+  .focus-item span {
+    display: block;
+    color: #b8c0c2;
+    font-size: 12px;
+  }
+
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(230px, 1fr) minmax(0, 2.3fr) auto;
+    gap: 13px;
+    align-items: end;
+    margin: 30px 0 13px;
+    padding: 16px;
+    border: 1px solid var(--rule);
+    background: rgba(245, 242, 233, .82);
+  }
+
+  .search-wrap,
+  .filter-group {
+    min-width: 0;
+  }
+
+  .filter-label {
+    display: block;
+    margin: 0 0 7px;
+    color: var(--faint);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+
+  .search {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--rule-dark);
+    border-radius: 0;
+    outline: 0;
+    background: var(--card);
+    color: var(--ink);
+  }
+
+  .search:focus {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px rgba(213, 164, 57, .25);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip,
+  .reset {
+    min-height: 34px;
+    border: 1px solid var(--rule-dark);
+    border-radius: 0;
+    background: var(--card);
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .chip {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    padding: 5px 9px;
+  }
+
+  .chip::before {
+    width: 7px;
+    height: 7px;
+    content: "";
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .chip[aria-pressed="false"] {
+    opacity: .4;
+    background: transparent;
+  }
+
+  .chip:hover,
+  .reset:hover {
+    border-color: var(--ink);
+  }
+
+  .chip:focus-visible,
+  .reset:focus-visible,
+  .card-link:focus-visible,
+  .source-link:focus-visible {
+    outline: 3px solid rgba(213, 164, 57, .55);
+    outline-offset: 2px;
+  }
+
+  .reset {
+    height: 38px;
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
+  .filter-summary {
+    min-height: 24px;
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .filter-summary strong {
+    color: var(--ink);
+  }
+
+  .board {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    padding: 5px 1px 20px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-color: var(--rule-dark) transparent;
+  }
+
+  .lane {
+    flex: 0 0 294px;
+    scroll-snap-align: start;
+  }
+
+  .lane-head {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: 10px 1fr auto;
+    gap: 9px;
+    align-items: center;
+    min-height: 46px;
+    padding: 8px 11px;
+    border: 1px solid var(--rule-dark);
+    border-top: 4px solid var(--lane-color);
+    background: color-mix(in srgb, var(--lane-bg) 90%, white 10%);
+    color: var(--lane-color);
+    box-shadow: 0 5px 15px rgba(25, 32, 35, .05);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+
+  .lane-signal {
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--lane-color);
+    border-radius: 50%;
+    background: var(--lane-color);
+  }
+
+  .lane-count {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lane-cards {
+    display: flex;
+    min-height: 124px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 9px 0;
+  }
+
+  .lane-empty {
+    padding: 26px 13px;
+    border: 1px dashed var(--rule-dark);
+    color: var(--faint);
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 13px 13px 12px 16px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--lane-color);
+    background: var(--card);
+    box-shadow: 0 5px 16px rgba(32, 39, 41, .045);
+    animation: card-in .34s both;
+    animation-delay: calc(var(--card-index) * 26ms);
+  }
+
+  .card::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    content: "";
+    background: linear-gradient(135deg, transparent 48%, var(--lane-bg) 49%);
+    pointer-events: none;
+  }
+
+  @keyframes card-in {
+    from { opacity: 0; transform: translateY(7px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    padding-right: 15px;
+  }
+
+  .card-id {
+    margin-right: auto;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .055em;
+  }
+
+  .tag {
+    padding: 2px 5px;
+    border: 1px solid currentColor;
+    background: var(--tag-bg);
+    color: var(--tag-color);
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .tag.p0 { --tag-color: var(--p0); --tag-bg: var(--p0-bg); }
+  .tag.p1 { --tag-color: var(--p1); --tag-bg: var(--p1-bg); }
+  .tag.p2 { --tag-color: var(--p2); --tag-bg: var(--p2-bg); }
+
+  .subsystem {
+    color: var(--ink-soft);
+    background: #ece9df;
+  }
+
+  .card h3 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -.012em;
+    line-height: 1.18;
+  }
+
+  .card-note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.42;
+  }
+
+  .signal-box {
+    padding: 8px 9px;
+    border-left: 3px solid var(--signal-box-color);
+    background: var(--signal-box-bg);
+    color: var(--ink-soft);
+    font-size: 11px;
+    line-height: 1.38;
+  }
+
+  .signal-box strong {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--signal-box-color);
+    font-size: 9px;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .signal-box.evidence {
+    --signal-box-color: var(--done);
+    --signal-box-bg: var(--done-bg);
+  }
+
+  .signal-box.blocker {
+    --signal-box-color: var(--blocked);
+    --signal-box-bg: var(--blocked-bg);
+  }
+
+  .signal-box.next {
+    --signal-box-color: var(--progress);
+    --signal-box-bg: var(--progress-bg);
+  }
+
+  .date-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 11px;
+    color: var(--faint);
+    font-size: 9px;
+  }
+
+  .card-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 1px;
+  }
+
+  .card-link {
+    padding: 4px 7px;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .card-link:hover {
+    border-color: var(--signal-dark);
+    color: var(--signal-dark);
+  }
+
+  .legend {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 20px;
+    margin: 34px 0 0;
+    padding-top: 22px;
+    border-top: 2px solid var(--ink);
+  }
+
+  .legend h2 {
+    margin: 0 0 13px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  .protocol {
+    display: grid;
+    gap: 8px;
+  }
+
+  .protocol-step {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 12px;
+    padding: 9px 0;
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+  }
+
+  .protocol-step b {
+    color: var(--signal-dark);
+    text-transform: uppercase;
+  }
+
+  .protocol-step span {
+    color: var(--muted);
+    font-family: "Avenir Next", "Trebuchet MS", "Segoe UI", sans-serif;
+    font-size: 12px;
+  }
+
+  .sources {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .source-link {
+    color: var(--ink-soft);
+    font-size: 11px;
+    text-decoration-color: var(--signal);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+
+  .source-note {
+    max-width: 560px;
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    margin-top: 30px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+    color: var(--faint);
+    font-size: 10px;
+  }
+
+  .backlog { --lane-color: var(--backlog); --lane-bg: var(--backlog-bg); }
+  .ready { --lane-color: var(--ready); --lane-bg: var(--ready-bg); }
+  .progress { --lane-color: var(--progress); --lane-bg: var(--progress-bg); }
+  .testing { --lane-color: var(--testing); --lane-bg: var(--testing-bg); }
+  .blocked { --lane-color: var(--blocked); --lane-bg: var(--blocked-bg); }
+  .done { --lane-color: var(--done); --lane-bg: var(--done-bg); }
+
+  @media (max-width: 1050px) {
+    .metrics { grid-template-columns: repeat(4, 1fr); }
+    .focus-grid { grid-template-columns: repeat(2, 1fr); }
+    .focus-item:nth-child(2) { border-right: 0; }
+    .focus-item:nth-child(-n+2) { border-bottom: 1px solid rgba(255, 255, 255, .16); }
+    .toolbar { grid-template-columns: 1fr; align-items: stretch; }
+    .reset { width: 100%; }
+  }
+
+  @media (max-width: 720px) {
+    .shell { padding: 14px 12px 44px; }
+    .topbar { grid-template-columns: 1fr; gap: 20px; }
+    .snapshot { width: 100%; }
+    h1 { font-size: clamp(38px, 12vw, 58px); }
+    .strategy { grid-template-columns: 1fr; gap: 4px; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .metric { min-height: 76px; }
+    .focus-grid { grid-template-columns: 1fr; }
+    .focus-item,
+    .focus-item:nth-child(2) {
+      border-right: 0;
+      border-bottom: 1px solid rgba(255, 255, 255, .16);
+    }
+    .focus-item:last-child { border-bottom: 0; }
+    .toolbar { margin-top: 22px; padding: 12px; }
+    .lane { flex-basis: min(88vw, 310px); }
+    .legend { grid-template-columns: 1fr; }
+    .foot { flex-direction: column; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .card { animation: none; }
+  }
+
+  @media print {
+    body { background: white; }
+    .shell { width: 100%; max-width: none; padding: 0; }
+    .toolbar { display: none; }
+    .board { display: grid; grid-template-columns: repeat(2, 1fr); overflow: visible; }
+    .lane { break-inside: avoid; }
+    .lane-head { position: static; }
+    .card { break-inside: avoid; box-shadow: none; animation: none; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">BST One / access control migration ledger</p>
+      <h1>СКД + учёт рабочего времени</h1>
+      <p class="lede">Исполнительная доска переноса ACS в BST. Показывает только доказанное состояние кода, проверки, интеграции и живого окружения.</p>
+    </div>
+    <aside class="snapshot" aria-label="Снимок ветки и pull request">
+      <div class="snapshot-state">Локальный merge зафиксирован</div>
+      <dl>
+        <dt>Ветка</dt><dd class="branch">maryna/skud-ta</dd>
+        <dt>Merge commit</dt><dd class="branch">6daadf3ea7f5</dd>
+        <dt>PR</dt><dd><a href="https://github.com/extend08/BST-OS/pull/15">#15 · OPEN</a></dd>
+        <dt>Merge</dt><dd>COMMITTED / 6daadf3ea</dd>
+        <dt>Checks</dt><dd>local scoped gate PASS</dd>
+        <dt>Deploy</dt><dd>не выполнялся</dd>
+      </dl>
+    </aside>
+  </header>
+
+  <section class="strategy" aria-label="Принятая стратегия переноса">
+    <strong>Lift pure logic + rewrite glue</strong>
+    <span>Без git subtree и без acs-upstream. Чистые движки живут в bst-policy, интеграция принадлежит BST.</span>
+  </section>
+
+  <section id="metrics" class="metrics" aria-label="Сводка по статусам"></section>
+
+  <section class="focus" aria-labelledby="focus-title">
+    <div class="focus-head">
+      <h2 id="focus-title">Ближайшая последовательность</h2>
+      <span class="readiness-code">EXECUTION ORDER / 2026-07-13</span>
+    </div>
+    <div class="focus-grid">
+      <div class="focus-item">
+        <span class="focus-num">1</span>
+        <strong>Согласовать следующий этап</strong>
+        <span>Выбрать отдельной задачей live deploy или следующую готовую карточку SKUD/T&amp;A.</span>
+      </div>
+      <div class="focus-item">
+        <span class="focus-num">2</span>
+        <strong>Разрешить deploy явно</strong>
+        <span>REL-02 остаётся заблокированной, пока оператор отдельно не назовёт целевое окружение и не разрешит deploy.</span>
+      </div>
+      <div class="focus-item">
+        <span class="focus-num">3</span>
+        <strong>Собрать живые доказательства</strong>
+        <span>После разрешённого deploy проверить миграцию, workers и tenant isolation на целевой системе.</span>
+      </div>
+      <div class="focus-item">
+        <span class="focus-num">4</span>
+        <strong>Продолжить выбранную карточку</strong>
+        <span>Перед новым кодом снова перевести выбранную карточку в «В работе» и записать критерии принятия.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolbar" aria-label="Фильтры доски">
+    <label class="search-wrap">
+      <span class="filter-label">Поиск</span>
+      <input id="search" class="search" type="search" placeholder="ID, задача, доказательство..." autocomplete="off">
+    </label>
+    <div>
+      <div class="filter-group">
+        <span class="filter-label">Приоритет</span>
+        <div id="priority-filters" class="chips"></div>
+      </div>
+      <div class="filter-group" style="margin-top:10px">
+        <span class="filter-label">Подсистема</span>
+        <div id="subsystem-filters" class="chips"></div>
+      </div>
+    </div>
+    <button id="reset" class="reset" type="button">Сбросить</button>
+  </section>
+
+  <p id="filter-summary" class="filter-summary" aria-live="polite"></p>
+  <section id="board" class="board" aria-label="Доска задач"></section>
+
+  <section class="legend">
+    <div>
+      <h2>Протокол обновления</h2>
+      <div class="protocol">
+        <div class="protocol-step"><b>До работы</b><span>Создать карточку или перевести её в «В работе», записать дату начала и следующий шаг.</span></div>
+        <div class="protocol-step"><b>После кода</b><span>Перевести в «Проверка», если ещё нужны тесты, review, интеграция, deploy или живое доказательство.</span></div>
+        <div class="protocol-step"><b>Блокер</b><span>Перевести в «Заблокировано» и назвать конкретную недостающую зависимость или полномочие.</span></div>
+        <div class="protocol-step"><b>Завершено</b><span>Допускается только после проверки каждого критерия принятия и записи доказательства.</span></div>
+      </div>
+    </div>
+    <div>
+      <h2>Источники правды</h2>
+      <div class="sources">
+        <a class="source-link" href="../CURRENT_STATUS.md">Current SKUD/T&amp;A status</a>
+        <a class="source-link" href="../acs_sync_state.md">ACS sync state marker</a>
+        <a class="source-link" href="../acs_bst_canon_map.md">ACS → BST canon map</a>
+        <a class="source-link" href="../ADR_acs_integration_boundary_2026_07_08.md">Integration boundary ADR</a>
+        <a class="source-link" href="../test_gate_recovery_2026_07_13.md">Scoped test gate recovery</a>
+        <a class="source-link" href="../HANDOFF_2026_07_08_session_closeout.md">Historical handoff</a>
+        <a class="source-link" href="https://github.com/extend08/BST-OS/pull/15">GitHub PR #15 reference, remote state not revalidated</a>
+      </div>
+      <p class="source-note">Доска является проекцией для оператора. При расхождении побеждают Git, CURRENT_STATUS, канонические документы и фактические результаты тестов или deploy. Удалённый статус PR здесь не утверждается без проверки GitHub.</p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>Read-only HTML · no storage · no network runtime</span>
+    <span id="updated-label">Snapshot: 2026-07-13</span>
+  </footer>
+</main>
+
+<script>
+  const BOARD_META = {
+    updatedAt: "2026-07-13",
+    branch: "maryna/skud-ta",
+    head: "049c171618b008ede00138a7b67d679dc209b90e",
+    remoteTrackingHead: "fa30a849f136",
+    mergeCommit: "6daadf3ea7f52b436166544aa73ac58f919f4c83",
+    prReference: 15
+  };
+
+  const LANES = [
+    { key: "backlog", label: "Очередь" },
+    { key: "ready", label: "Готово к старту" },
+    { key: "progress", label: "В работе" },
+    { key: "testing", label: "Проверка" },
+    { key: "blocked", label: "Заблокировано" },
+    { key: "done", label: "Завершено" }
+  ];
+
+  const PRIORITIES = [
+    { key: "p0", label: "P0" },
+    { key: "p1", label: "P1" },
+    { key: "p2", label: "P2" }
+  ];
+
+  const SUBSYSTEMS = [
+    { key: "release", label: "Интеграция" },
+    { key: "foundation", label: "Фундамент" },
+    { key: "ta", label: "T&A" },
+    { key: "access", label: "Доступ" },
+    { key: "occupancy", label: "Occupancy" },
+    { key: "identity", label: "Идентичности" },
+    { key: "drivers", label: "Драйверы" },
+    { key: "alarms", label: "Тревоги" },
+    { key: "sync", label: "Синхронизация" },
+    { key: "ui", label: "UI" }
+  ];
+
+  const CARDS = [
+    {
+      id: "DOCS-01",
+      lane: "progress",
+      priority: "p0",
+      subsystem: "foundation",
+      title: "Оформить актуальную документацию SKUD/T&A",
+      note: "Консолидировать текущий статус, навигацию, runtime-контракты и исторические snapshot без изменения кода.",
+      next: "Создать единый CURRENT_STATUS, исправить ссылки и отделить historical-документы от текущей истины.",
+      startedAt: "2026-07-13",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Current status", href: "../CURRENT_STATUS.md" }]
+    },
+    {
+      id: "TEST-01",
+      lane: "done",
+      priority: "p0",
+      subsystem: "release",
+      title: "Восстановить зелёный локальный test gate",
+      note: "Оператор ограничил gate модулем SKUD/T&A. Все согласованные scoped-проверки завершены успешно.",
+      evidence: "cargo test --workspace и cargo check --workspace прошли; целевой clippy завершился с кодом 0 и только унаследованными предупреждениями; bst-policy 147/147; SKUD Vitest 57/57; frontend lint 0 errors; build создал 116 маршрутов; PostgreSQL 15 integration tests 9/9.",
+      startedAt: "2026-07-13",
+      updatedAt: "2026-07-13"
+    },
+    {
+      id: "BOARD-01",
+      lane: "done",
+      priority: "p1",
+      subsystem: "foundation",
+      title: "Создать read-only execution board",
+      note: "Автономная HTML-доска по переносу ACS в BST и обязательный протокол обновления статусов для Claude/Codex.",
+      evidence: "Read-only HTML без сетевой записи; 29 карточек имеют уникальные id; JavaScript компилируется; локальные ссылки разрешаются; merge commit 6daadf3ea записан в snapshot.",
+      startedAt: "2026-07-13",
+      updatedAt: "2026-07-13",
+      links: [
+        { label: "Design", href: "../exec_board_design_2026_07_13.md" },
+        { label: "Plan", href: "../exec_board_implementation_plan_2026_07_13.md" }
+      ]
+    },
+    {
+      id: "REL-01",
+      lane: "done",
+      priority: "p0",
+      subsystem: "release",
+      title: "Синхронизировать ветку с актуальным main",
+      note: "origin/main 4d4bc568 слит локально. Три конфликта разрешены с сохранением SKUD/T&A и новых main-модулей; scoped gate зелёный.",
+      evidence: "Merge commit 6daadf3ea7f52b436166544aa73ac58f919f4c83 имеет родителей fa30a849f136 и 4d4bc56870d0. Текущий локальный HEAD 049c171618b0. Push и deploy не выполнялись.",
+      updatedAt: "2026-07-13",
+      links: [{ label: "PR #15 reference", href: "https://github.com/extend08/BST-OS/pull/15" }]
+    },
+    {
+      id: "REL-02",
+      lane: "blocked",
+      priority: "p0",
+      subsystem: "release",
+      title: "Первый deploy и живые L2/L3 доказательства",
+      note: "Ни одна миграция или функция этой ветки ещё не проверялась на живой БД и оборудовании.",
+      blocker: "Deploy и живые L2/L3 доказательства не входят в текущий commit. Для ryzen7 нужна отдельная явная команда оператора после закрытия REL-01.",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Handoff", href: "../HANDOFF_2026_07_08_session_closeout.md" }]
+    },
+    {
+      id: "REVIEW-01",
+      lane: "done",
+      priority: "p0",
+      subsystem: "release",
+      title: "Финальный review и delivery gate PR #15",
+      note: "Независимый read-only review итоговой SKUD/T&A дельты и трёх merge-решений завершён.",
+      evidence: "Повторное ревью после удаления независимого tenant_id из ledger вернуло APPROVE без blocking findings.",
+      updatedAt: "2026-07-13",
+      links: [{ label: "PR #15 reference", href: "https://github.com/extend08/BST-OS/pull/15" }]
+    },
+    {
+      id: "FIX-01",
+      lane: "done",
+      priority: "p0",
+      subsystem: "foundation",
+      title: "Закрыть blocking findings SKUD/T&A review",
+      note: "Replay/cursor, department hierarchy и direction consensus исправлены. Независимый tenant_id удалён из event ledger, tenant truth всегда происходит из canonical event. main остаётся вне scope.",
+      evidence: "RED воспроизвёл 5 исходных дефектов и отдельный tenant-integrity дефект. GREEN: свежая PostgreSQL 15 база и 9/9 integration tests; ledger содержит только consumer, event_id и processed_at.",
+      startedAt: "2026-07-13",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Gate report", href: "../test_gate_recovery_2026_07_13.md" }]
+    },
+    {
+      id: "CANON-01",
+      lane: "done",
+      priority: "p0",
+      subsystem: "foundation",
+      title: "Зафиксировать границу ACS → BST",
+      note: "Принята стратегия lift pure logic + rewrite glue. Subtree и acs-upstream официально отвергнуты.",
+      evidence: "ADR принят оператором 2026-07-08; canon map, sync marker и manual re-port runbook существуют.",
+      updatedAt: "2026-07-08",
+      links: [
+        { label: "ADR", href: "../ADR_acs_integration_boundary_2026_07_08.md" },
+        { label: "Map", href: "../acs_bst_canon_map.md" }
+      ]
+    },
+    {
+      id: "TA-01",
+      lane: "testing",
+      priority: "p0",
+      subsystem: "ta",
+      title: "Движок учёта рабочего времени",
+      note: "State machine, recompute, expected shift, worker, auto-close, night/overtime/weighted minutes, П-5 и диагностический HTTP уже в коде.",
+      evidence: "Локальные cargo test/check были чистыми по handoff и commit evidence.",
+      next: "После явно разрешённого deploy доказать миграцию, replay-safe обработку и реальный проход на живой БД.",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Feature doc", href: "../ta_engine_port_2026_06_29.md" }]
+    },
+    {
+      id: "TA-02",
+      lane: "testing",
+      priority: "p1",
+      subsystem: "ta",
+      title: "Защита поздних событий и ручных исправлений",
+      note: "Добавлено 30-секундное replay-окно и запрет автоматического перезаписывания edited-сессий.",
+      next: "Интеграционный тест с поздним occurred_at и повторным событием после ручной коррекции.",
+      updatedAt: "2026-07-09"
+    },
+    {
+      id: "TA-03",
+      lane: "backlog",
+      priority: "p0",
+      subsystem: "ta",
+      title: "Зафиксировать первый ACK attendance warning",
+      note: "Текущий POST повторно перезаписывает acknowledged_by и acknowledged_at. Нативный клиент требует first-write-wins, чтобы поздний или конкурентный ACK не менял исходный аудит.",
+      next: "После REL-01 сделать атомарный переход acknowledged=false в true. Первый ACK фиксирует автора и время и возвращает acknowledged_by плюс acknowledged_at; повторный или конкурентный ACK возвращает 409 warning already acknowledged без изменения записи; отсутствующий или чужой warning остаётся 404. Доказать DB integration test.",
+      updatedAt: "2026-07-13"
+    },
+    {
+      id: "TA-04",
+      lane: "backlog",
+      priority: "p0",
+      subsystem: "ta",
+      title: "Устранить неоднозначность accounting_date",
+      note: "Текущий i32 кодирует полночь площадки без timezone и не позволяет клиенту надёжно восстановить календарную дату для всех часовых поясов.",
+      next: "После REL-01 добавить nullable accounting_date_local в каноническом формате YYYY-MM-DD и временно сохранить legacy accounting_date для совместимости. Проверить календарные границы и разные timezone сервера, площадки и клиента; клиент отображает дату как DD-MM-YYYY.",
+      updatedAt: "2026-07-13"
+    },
+    {
+      id: "ACCESS-01",
+      lane: "testing",
+      priority: "p0",
+      subsystem: "access",
+      title: "Оценка доступа WHO / WHERE / WHEN",
+      note: "Сохранение subjects, targets и schedules, чистый evaluator и POST /access/simulate реализованы.",
+      evidence: "bst-policy evaluator и tenant-scoped BST glue присутствуют; credential matching приведён к production path.",
+      next: "После явно разрешённого deploy проверить реальные permit/deny сценарии и отсутствие физического действия из evaluator.",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Feature doc", href: "../access_evaluator_port_2026_07_03.md" }]
+    },
+    {
+      id: "ACCESS-02",
+      lane: "testing",
+      priority: "p1",
+      subsystem: "access",
+      title: "Журнал решений и reconciliation",
+      note: "Worker с advisory lock 7903 заполняет access_decisions и выявляет drift без переворота device-authoritative модели.",
+      next: "Живой drift-сценарий и проверка, что сигнал не вызывает физическое открытие двери.",
+      updatedAt: "2026-07-06",
+      links: [{ label: "Feature doc", href: "../access_decision_reconciliation_2026_07_06.md" }]
+    },
+    {
+      id: "ACCESS-03",
+      lane: "blocked",
+      priority: "p2",
+      subsystem: "access",
+      title: "Материализация effective_permissions",
+      note: "Таблица существует, но evaluator сейчас вычисляет решение на чтении и не материализует кэш.",
+      blocker: "Нужно продуктовое решение о семантике кэша, инвалидировании и авторитетности.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "Sync marker", href: "../acs_sync_state.md" }]
+    },
+    {
+      id: "OCC-01",
+      lane: "testing",
+      priority: "p0",
+      subsystem: "occupancy",
+      title: "Подсчёт людей и occupancy alarms",
+      note: "Direction resolution, counters, exceeded/negative alarms и worker с lock 7902 реализованы. Provisional door-command ACK исключён.",
+      next: "Живой вход/выход, ручное открытие без прохода и проверка alarm thresholds.",
+      updatedAt: "2026-07-09",
+      links: [{ label: "Feature doc", href: "../occupancy_engine_port_2026_07_06.md" }]
+    },
+    {
+      id: "ID-01",
+      lane: "testing",
+      priority: "p1",
+      subsystem: "identity",
+      title: "Подразделения и группы доступа",
+      note: "CRUD departments, access groups и membership реализован; UUID-типы и tenant-trust symmetry исправлены.",
+      next: "Проверить интерфейс и cross-tenant fail-closed поведение на реальной БД.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "Feature doc", href: "../departments_access_groups_crud_2026_07_06.md" }]
+    },
+    {
+      id: "ID-02",
+      lane: "testing",
+      priority: "p1",
+      subsystem: "identity",
+      title: "Ручная регистрация внешних идентификаторов",
+      note: "GET/POST/DELETE external links и read-only monitor подключены к person detail. Автообучение по трафику намеренно отвергнуто.",
+      next: "Зарегистрировать link на реальном Hikvision и доказать card-less attribution.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "Feature doc", href: "../external_identity_link_enrolment_2026_07_08.md" }]
+    },
+    {
+      id: "TENANT-01",
+      lane: "backlog",
+      priority: "p0",
+      subsystem: "foundation",
+      title: "Добавить tenant context для cross-tenant admin",
+      note: "Без выбранного tenant departments смешиваются без tenant_id в элементах, create не работает, а update/delete и warning ACK могут затронуть запись любой организации по id.",
+      next: "После REL-01 расширить POST /api/v1/auth/switch-context: для cross-tenant роли принимать tenant_id, проверять активный tenant и выдавать новый JWT с этим контекстом; существующий role_id flow сохранить. GET /api/v1/tenants остаётся источником вариантов. Новый JWT одинаково ограничивает списки и мутации departments и warnings; отсутствие выбора закрывается до domain-запроса; tenant-scoped пользователь не может подменить tenant. Доказать интеграционными тестами чтения и записи.",
+      updatedAt: "2026-07-13"
+    },
+    {
+      id: "DRV-01",
+      lane: "testing",
+      priority: "p1",
+      subsystem: "drivers",
+      title: "Hikvision person attribution",
+      note: "События контроллера разрешаются в person_id через ручной external link и credential fallback.",
+      next: "Проверить оба tier на реальном контроллере и исключить ошибочную переатрибуцию.",
+      updatedAt: "2026-07-06",
+      links: [{ label: "Feature doc", href: "../person_attribution_hikvision_2026_07_06.md" }]
+    },
+    {
+      id: "ALARM-01",
+      lane: "ready",
+      priority: "p1",
+      subsystem: "alarms",
+      title: "Исполнитель реакций alarm-input",
+      note: "Конфигурационные таблицы alarm_input_configs, door_actions и output_actions существуют, но runtime executor отсутствует.",
+      next: "Отдельный Phase 0, затем единый executor через canonical events и gate_actions.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "Sync marker", href: "../acs_sync_state.md" }]
+    },
+    {
+      id: "NOTIFY-01",
+      lane: "ready",
+      priority: "p1",
+      subsystem: "alarms",
+      title: "Telegram-диспетчер для persons.telegram_*",
+      note: "Поля и существующий alerting contour есть, но персональная доставка событий СКД не подключена.",
+      next: "Phase 0 на reuse существующего Telegram executor без второго notification bus.",
+      updatedAt: "2026-07-08"
+    },
+    {
+      id: "SYNC-01",
+      lane: "backlog",
+      priority: "p1",
+      subsystem: "sync",
+      title: "Canon-sync IdentitySink",
+      note: "BST пока не отправляет персон, карты и расписания на контроллеры по diff-модели ACS.",
+      next: "Спроектировать BST-native push-to-device seam и idempotency без импорта ACS canon stack.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "Canon map", href: "../acs_bst_canon_map.md" }]
+    },
+    {
+      id: "SYNC-02",
+      lane: "blocked",
+      priority: "p1",
+      subsystem: "sync",
+      title: "Обнаружение конфликтов синхронизации",
+      note: "duplicate_card, name_mismatch и deleted_on_controller пока не существуют как вычисляемые строки.",
+      blocker: "Hikvision driver не имеет controller-pull UserInfo/CardInfo capability.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "Canon map", href: "../acs_bst_canon_map.md" }]
+    },
+    {
+      id: "PRESENCE-01",
+      lane: "backlog",
+      priority: "p1",
+      subsystem: "occupancy",
+      title: "Person presence и эвакуационный список",
+      note: "Счётчики по зонам есть, но нет ответа на вопрос, какие конкретно люди находятся внутри.",
+      next: "Добавить tenant-scoped per-person presence модель и roster projection отдельным Phase 0.",
+      updatedAt: "2026-07-08"
+    },
+    {
+      id: "DRV-02",
+      lane: "backlog",
+      priority: "p2",
+      subsystem: "drivers",
+      title: "Драйвер ZKTeco",
+      note: "В ACS драйвер существует, в BST соответствующего Rust пути нет.",
+      next: "Сначала подтвердить реальное оборудование и протокол, затем выполнить dependency proof.",
+      updatedAt: "2026-07-08"
+    },
+    {
+      id: "UI-01",
+      lane: "backlog",
+      priority: "p1",
+      subsystem: "ui",
+      title: "Оставшаяся операторская интеграция",
+      note: "Основные страницы BST существуют, но не завершены мастера enrolment, Guard Console и полная проводка оставшихся движков.",
+      next: "После живого backend proof выбрать минимальные операторские решения, а не копировать ACS SPA.",
+      updatedAt: "2026-07-08"
+    },
+    {
+      id: "DISC-01",
+      lane: "backlog",
+      priority: "p2",
+      subsystem: "drivers",
+      title: "Discovery для СКД-оборудования",
+      note: "СКД не может создавать assets. Новый discovery обязан идти через модуль «Пристрої» и module_bindings.",
+      next: "Отдельный ASK + Phase 0 с Asset Identity Declaration.",
+      updatedAt: "2026-07-08"
+    },
+    {
+      id: "FACE-01",
+      lane: "backlog",
+      priority: "p2",
+      subsystem: "identity",
+      title: "Биометрия и legacy OTAP",
+      note: "Python sidecars ACS несовместимы с Rust-only каноном BST и не переносятся как процессы.",
+      next: "Отдельное cross-zone решение: Rust rewrite или осознанный skip.",
+      updatedAt: "2026-07-08",
+      links: [{ label: "ADR", href: "../ADR_acs_integration_boundary_2026_07_08.md" }]
+    },
+    {
+      id: "META-01",
+      lane: "ready",
+      priority: "p1",
+      subsystem: "foundation",
+      title: "Синхронизировать старую локальную формулировку subtree",
+      note: "CLAUDE.local и его Codex-копия всё ещё содержат старый план crates/acs-* через subtree, который противоречит принятому ADR.",
+      next: "Отдельно заменить устаревший раздел на lift pure + rewrite glue и manual re-port.",
+      updatedAt: "2026-07-13",
+      links: [{ label: "ADR", href: "../ADR_acs_integration_boundary_2026_07_08.md" }]
+    }
+  ];
+
+  const laneByKey = Object.fromEntries(LANES.map(item => [item.key, item]));
+  const subsystemByKey = Object.fromEntries(SUBSYSTEMS.map(item => [item.key, item]));
+  const activePriorities = new Set(PRIORITIES.map(item => item.key));
+  const activeSubsystems = new Set(SUBSYSTEMS.map(item => item.key));
+  let query = "";
+
+  const metricsElement = document.getElementById("metrics");
+  const boardElement = document.getElementById("board");
+  const summaryElement = document.getElementById("filter-summary");
+  const searchElement = document.getElementById("search");
+  const priorityFiltersElement = document.getElementById("priority-filters");
+  const subsystemFiltersElement = document.getElementById("subsystem-filters");
+  const resetElement = document.getElementById("reset");
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function cardSearchText(card) {
+    return [
+      card.id,
+      card.title,
+      card.note,
+      card.evidence,
+      card.blocker,
+      card.next,
+      subsystemByKey[card.subsystem]?.label
+    ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
+  }
+
+  function visibleCards() {
+    const normalizedQuery = query.trim().toLocaleLowerCase("ru");
+    return CARDS.filter(card =>
+      activePriorities.has(card.priority) &&
+      activeSubsystems.has(card.subsystem) &&
+      (!normalizedQuery || cardSearchText(card).includes(normalizedQuery))
+    );
+  }
+
+  function renderMetrics(cards) {
+    const counts = Object.fromEntries(LANES.map(lane => [
+      lane.key,
+      cards.filter(card => card.lane === lane.key).length
+    ]));
+    const completion = cards.length
+      ? Math.round((counts.done / cards.length) * 100)
+      : 0;
+
+    metricsElement.innerHTML = [
+      ...LANES.map(lane => `
+        <div class="metric ${lane.key}">
+          <span class="metric-value">${counts[lane.key]}</span>
+          <span class="metric-label">${escapeHtml(lane.label)}</span>
+        </div>
+      `),
+      `
+        <div class="metric ratio">
+          <span class="metric-value">${completion}%</span>
+          <span class="metric-label">Закрыто по доказательствам</span>
+        </div>
+      `
+    ].join("");
+  }
+
+  function signalHtml(card) {
+    if (card.blocker) {
+      return `<div class="signal-box blocker"><strong>Блокер</strong>${escapeHtml(card.blocker)}</div>`;
+    }
+    if (card.next) {
+      return `<div class="signal-box next"><strong>Следующий шаг</strong>${escapeHtml(card.next)}</div>`;
+    }
+    if (card.evidence) {
+      return `<div class="signal-box evidence"><strong>Доказательство</strong>${escapeHtml(card.evidence)}</div>`;
+    }
+    return "";
+  }
+
+  function linksHtml(card) {
+    if (!card.links?.length) return "";
+    const links = card.links.map(link =>
+      `<a class="card-link" href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`
+    ).join("");
+    return `<div class="card-links">${links}</div>`;
+  }
+
+  function cardHtml(card, index) {
+    const subsystem = subsystemByKey[card.subsystem]?.label ?? card.subsystem;
+    const dates = [
+      card.startedAt ? `старт ${card.startedAt}` : "",
+      card.updatedAt ? `обновлено ${card.updatedAt}` : ""
+    ].filter(Boolean);
+
+    return `
+      <article class="card ${card.lane}" style="--card-index:${index}" data-card-id="${escapeHtml(card.id)}">
+        <div class="card-meta">
+          <span class="card-id">${escapeHtml(card.id)}</span>
+          <span class="tag ${escapeHtml(card.priority)}">${escapeHtml(card.priority)}</span>
+          <span class="tag subsystem">${escapeHtml(subsystem)}</span>
+        </div>
+        <h3>${escapeHtml(card.title)}</h3>
+        <p class="card-note">${escapeHtml(card.note)}</p>
+        ${card.evidence && card.next ? `<div class="signal-box evidence"><strong>Доказательство</strong>${escapeHtml(card.evidence)}</div>` : ""}
+        ${signalHtml(card)}
+        ${dates.length ? `<div class="date-row">${dates.map(escapeHtml).map(value => `<span>${value}</span>`).join("")}</div>` : ""}
+        ${linksHtml(card)}
+      </article>
+    `;
+  }
+
+  function renderBoard() {
+    const cards = visibleCards();
+    renderMetrics(cards);
+
+    boardElement.innerHTML = LANES.map(lane => {
+      const laneCards = cards.filter(card => card.lane === lane.key);
+      const totalInLane = CARDS.filter(card => card.lane === lane.key).length;
+      const body = laneCards.length
+        ? laneCards.map(cardHtml).join("")
+        : '<div class="lane-empty">Нет карточек при текущем фильтре</div>';
+
+      return `
+        <section class="lane ${lane.key}" aria-labelledby="lane-${lane.key}">
+          <header class="lane-head ${lane.key}">
+            <span class="lane-signal" aria-hidden="true"></span>
+            <span id="lane-${lane.key}">${escapeHtml(lane.label)}</span>
+            <span class="lane-count">${laneCards.length}/${totalInLane}</span>
+          </header>
+          <div class="lane-cards">${body}</div>
+        </section>
+      `;
+    }).join("");
+
+    summaryElement.innerHTML = `Показано <strong>${cards.length}</strong> из <strong>${CARDS.length}</strong> задач. Данные меняет агент в исходном HTML, браузер работает только на чтение.`;
+  }
+
+  function renderFilterButtons(element, items, activeSet, dataKey) {
+    element.innerHTML = items.map(item => `
+      <button
+        class="chip"
+        type="button"
+        data-${dataKey}="${escapeHtml(item.key)}"
+        aria-pressed="${activeSet.has(item.key)}"
+      >${escapeHtml(item.label)}</button>
+    `).join("");
+
+    element.querySelectorAll(".chip").forEach(button => {
+      button.addEventListener("click", () => {
+        const key = button.dataset[dataKey];
+        if (activeSet.has(key)) activeSet.delete(key);
+        else activeSet.add(key);
+        button.setAttribute("aria-pressed", String(activeSet.has(key)));
+        renderBoard();
+      });
+    });
+  }
+
+  function resetFilters() {
+    activePriorities.clear();
+    PRIORITIES.forEach(item => activePriorities.add(item.key));
+    activeSubsystems.clear();
+    SUBSYSTEMS.forEach(item => activeSubsystems.add(item.key));
+    query = "";
+    searchElement.value = "";
+    renderFilterButtons(priorityFiltersElement, PRIORITIES, activePriorities, "priority");
+    renderFilterButtons(subsystemFiltersElement, SUBSYSTEMS, activeSubsystems, "subsystem");
+    renderBoard();
+  }
+
+  searchElement.addEventListener("input", event => {
+    query = event.target.value;
+    renderBoard();
+  });
+
+  resetElement.addEventListener("click", resetFilters);
+
+  renderFilterButtons(priorityFiltersElement, PRIORITIES, activePriorities, "priority");
+  renderFilterButtons(subsystemFiltersElement, SUBSYSTEMS, activeSubsystems, "subsystem");
+  renderBoard();
+</script>
+</body>
+</html>
