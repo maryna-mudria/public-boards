@@ -932,9 +932,9 @@
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Read-only Phase 0 завершён: поточна гілка змішує 90 файлів і 17 501 додавання. Чиста гілка maryna/skud-ta-for-PR створена від origin/main. Foundation commit a18a976a86ed874a5fa9064de2d8903c54790100 додає чистий T&A policy engine і адитивну schema migration. У поточному worker-срезі перевірені durable ledger, late-event backfill без cursor gate, tenant quarantine, protection edited session, weekly shift attribution і fail-closed timezone/config. Scope обмежений базовим SKUD/T&A і поточним Hikvision attribution; Telegram, ZKTeco і нові зовнішні інтеграції виключені.",
-      blocker: "TA-04 отложен: безопасный cutover старого и нового T&A writer до migration 20260714140000 остаётся обязательным условием его отдельного PR.",
-      next: "Закрити worker gate і закоммитити лише погоджений T&A scope. Потім окремий Phase 0 для точного fail-closed Hikvision attribution; TA-04 та нові інтеграції не копіювати.",
+      note: "Read-only Phase 0 завершён: поточна гілка змішує 90 файлів і 17 501 додавання. Чиста гілка maryna/skud-ta-for-PR створена від origin/main. Foundation commit a18a976a86ed874a5fa9064de2d8903c54790100 додає T&A policy engine і scaffold. Worker commit 9b5577f2511b6d33f522de12a3da6afad0eccaf9 додає fail-closed projection через durable ledger, late-event backfill без cursor gate, tenant quarantine, protection edited session, weekly shift attribution, repeat-exit warning і timezone/config gate. Fresh PostgreSQL bootstrap, migration check, 3 focused та 8 serial integration tests пройшли. Scope обмежений базовим SKUD/T&A і поточним Hikvision attribution; Telegram, ZKTeco і нові зовнішні інтеграції виключені.",
+      blocker: "TA-04 отложен: безопасный cutover старого и нового T&A writer до migration 20260714140000 остаётся обязательным условием его отдельного PR. Строгий monorepo Clippy має успадкований борг поза T&A scope.",
+      next: "Не пушити й не deploy без нового дозволу. Потім окремий Phase 0 для точного fail-closed Hikvision attribution; TA-04 та нові інтеграції не копіювати.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
