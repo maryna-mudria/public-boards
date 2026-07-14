@@ -10,6 +10,7 @@ ALLOWED_TARGETS = {
     "asr/index.html",
     "call-ai/index.html",
     "skud/index.html",
+    "client-skud/index.html",
 }
 
 REQUIRED_ELEMENTS = ("html", "title")
