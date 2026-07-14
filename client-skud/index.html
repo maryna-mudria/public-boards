@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SKUD Client Execution Board</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #eef0f1;
+      --card: #ffffff;
+      --ink: #161a1d;
+      --muted: #5b676b;
+      --faint: #8a959a;
+      --rule: #d6dadc;
+      --accent: #0e7c86;
+      --focus: #0e7c86;
+      --backlog: #64748b;
+      --backlog-bg: #e9ecef;
+      --ready: #2563a8;
+      --ready-bg: #e3ecf6;
+      --progress: #0e7c86;
+      --progress-bg: #e1f0f0;
+      --testing: #b7791f;
+      --testing-bg: #f6ecd9;
+      --blocked: #b04a4a;
+      --blocked-bg: #f3e2e2;
+      --done: #2e7d46;
+      --done-bg: #e4f0e8;
+      --p0: #b04a4a;
+      --p0-bg: #f3e2e2;
+      --p1: #b7791f;
+      --p1-bg: #f6ecd9;
+      --p2: #5b676b;
+      --p2-bg: #e9ecef;
+      --bg: var(--paper);
+      --panel: #f7f8f8;
+      --panel-strong: var(--card);
+      --border: var(--rule);
+      --text: var(--ink);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    button,
+    summary {
+      font: inherit;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .shell {
+      width: min(92rem, 100%);
+      margin: 0 auto;
+      padding: 2.4rem 1.4rem 4rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 650;
+      letter-spacing: -0.01em;
+      text-wrap: balance;
+    }
+
+    .top {
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 1.4rem;
+      padding-bottom: 1.3rem;
+    }
+
+    .crumb,
+    .eyebrow,
+    .badge,
+    .filter-label,
+    .filter-chip,
+    .lane-head,
+    .card-meta,
+    .disclosure-label,
+    footer {
+      font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .crumb {
+      margin: 0 0 0.8rem;
+      color: var(--faint);
+      font-size: 0.74rem;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.55em;
+      color: var(--accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 1.6rem;
+      height: 2px;
+      background: var(--accent);
+      content: "";
+    }
+
+    .top h1 {
+      margin: 0.5rem 0 0.3rem;
+      font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.1rem);
+      line-height: 1.1;
+    }
+
+    .lede {
+      max-width: 46rem;
+      margin-bottom: 0.9rem;
+      color: var(--muted);
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.2rem;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .source-link {
+      margin: 0.9rem 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(7.2rem, 1fr));
+      gap: 0.5rem;
+      margin-top: 1.4rem;
+      overflow: visible;
+      background: transparent;
+    }
+
+    .summary-item {
+      border: 1px solid var(--rule);
+      border-top: 3px solid var(--state-colour);
+      border-radius: 3px;
+      background: var(--panel);
+      padding: 0.7rem 0.6rem;
+    }
+
+    .summary-item strong {
+      display: block;
+      color: var(--state-colour);
+      font: 600 1.5rem/1 "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: end;
+      gap: 0.7rem;
+      margin: 1.4rem 0 0.3rem;
+    }
+
+    .filter-groups {
+      display: grid;
+      flex: 1 1 42rem;
+      gap: 0.55rem;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .filter-label {
+      min-width: 6.2rem;
+      color: var(--faint);
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .filter-chip,
+    #resetFilters,
+    #emptyReset {
+      min-height: 2rem;
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      background: var(--card);
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.25rem 0.55rem;
+    }
+
+    .filter-chip[aria-pressed="true"] {
+      border-color: var(--ink);
+      background: var(--panel);
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .filter-chip[aria-pressed="false"] {
+      opacity: 0.5;
+    }
+
+    .result-status {
+      min-height: 1.5em;
+      margin: 0.5rem 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .board {
+      display: flex;
+      gap: 0.8rem;
+      align-items: flex-start;
+      margin-top: 0;
+      overflow-x: auto;
+      padding: 0.5rem 0 1.2rem;
+      scroll-snap-type: x proximity;
+    }
+
+    .lane {
+      display: flex;
+      flex: 0 0 18rem;
+      flex-direction: column;
+      gap: 0.55rem;
+      scroll-snap-align: start;
+    }
+
+    .lane-head {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      border-radius: 3px;
+      background: var(--state-background);
+      color: var(--state-colour);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.5rem 0.6rem;
+    }
+
+    .lane-head .count {
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .lane-description {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .card {
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--state-colour, var(--accent));
+      border-radius: 4px;
+      background: var(--card);
+      padding: 0;
+    }
+
+    .card-summary {
+      position: relative;
+      display: grid;
+      gap: 0.45rem;
+      cursor: pointer;
+      list-style: none;
+      padding: 0.7rem 2.1rem 0.7rem 0.7rem;
+    }
+
+    .card-summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .card-summary::after {
+      position: absolute;
+      top: 0.65rem;
+      right: 0.7rem;
+      color: var(--accent);
+      content: "+";
+      font: 700 1rem/1 "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    .card[open] .card-summary::after {
+      content: "-";
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0;
+    }
+
+    .badge {
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      color: var(--muted);
+      font-size: 0.68rem;
+      padding: 0.05rem 0.38rem;
+    }
+
+    .badge-priority.p0 {
+      border-color: var(--p0-bg);
+      background: var(--p0-bg);
+      color: var(--p0);
+    }
+
+    .badge-priority.p1 {
+      border-color: var(--p1-bg);
+      background: var(--p1-bg);
+      color: var(--p1);
+    }
+
+    .badge-priority.p2 {
+      border-color: var(--p2-bg);
+      background: var(--p2-bg);
+      color: var(--p2);
+    }
+
+    .badge-id {
+      margin-left: auto;
+      color: var(--faint);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 0.94rem;
+      line-height: 1.3;
+    }
+
+    .card-meta {
+      margin: 0;
+      color: var(--faint);
+      font-size: 0.7rem;
+    }
+
+    .disclosure-label {
+      color: var(--accent);
+      font-size: 0.72rem;
+    }
+
+    .card-details {
+      border-top: 1px dashed var(--rule);
+      padding: 0.7rem;
+    }
+
+    .card-details dl {
+      display: grid;
+      grid-template-columns: minmax(6.5rem, 0.4fr) minmax(0, 1fr);
+      gap: 0.45rem 0.7rem;
+      margin: 0;
+    }
+
+    .card-details dt {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .card-details dd {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .card-details ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    .col-empty {
+      margin: 0;
+      color: var(--faint);
+      font-size: 0.8rem;
+      font-style: italic;
+    }
+
+    .policy,
+    .empty {
+      margin-top: 1.4rem;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--panel);
+      padding: 1rem;
+    }
+
+    .policy summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .policy p {
+      margin-top: 0.8rem;
+      color: var(--muted);
+    }
+
+    .legend-list {
+      display: grid;
+      gap: 0.55rem;
+      margin: 0.8rem 0 0;
+      padding-left: 1.2rem;
+    }
+
+    footer {
+      margin-top: 2rem;
+      padding-top: 1.1rem;
+      border-top: 1px solid var(--rule);
+      color: var(--faint);
+      font-size: 0.78rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 800px) {
+      .summary {
+        grid-template-columns: repeat(3, minmax(7.2rem, 1fr));
+      }
+
+      .card-details dl {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        padding: 1.6rem 1rem 3rem;
+      }
+
+      .summary {
+        grid-template-columns: repeat(2, minmax(7.2rem, 1fr));
+      }
+
+      .filter-groups {
+        flex-basis: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <p class="crumb">BST Client / SKUD</p>
+      <div class="eyebrow">Client execution board</div>
+      <h1>SKUD Client Execution Board</h1>
+      <p class="lede">Client-owned work for native Departments and Attendance Warnings screens.</p>
+      <div class="meta">
+        <span>Branch: <strong>maryna/skud-ta-client</strong></span>
+        <span>Last updated: <strong>2026-07-14</strong></span>
+        <span>Initial state: <strong>implementation not authorized</strong></span>
+      </div>
+      <p class="source-link">Design source: <a href="../../superpowers/specs/2026-07-13-skud-departments-attendance-warnings-native-screens-design.md">SKUD native screens design</a></p>
+      <section id="summary" class="summary" aria-label="Card totals"></section>
+    </header>
+
+    <section class="filters" aria-label="Board filters">
+      <div id="filterGroups" class="filter-groups"></div>
+      <button id="resetFilters" type="button">Reset filters</button>
+    </section>
+
+    <p id="resultStatus" class="result-status" role="status" aria-live="polite" aria-atomic="true">
+      Board not initialized.
+    </p>
+    <section id="board" class="board"></section>
+
+    <section id="empty" class="empty hidden">
+      <h2>No matching cards</h2>
+      <p>Clear the filters to show the full Client plan.</p>
+      <button id="emptyReset" type="button">Reset filters</button>
+    </section>
+
+    <section class="policy">
+      <details>
+        <summary>Lifecycle and fixture-ready rules</summary>
+        <p id="fixtureReadyContract">
+          Fixture-ready: a Client card is fixture-ready if and only if it is done, or it is in
+          testing with all its own Client-only acceptance evidence recorded, every listed Client
+          dependency itself fixture-ready, and its only remaining incomplete criteria or blockers
+          are limited to its own listed external server gates plus waiting for those fixture-ready
+          Client dependencies to become done. No other blocker qualifies. Because fixture-ready is
+          recursive, the Client dependency graph must be acyclic. Moving a card to testing does not
+          make it fixture-ready by itself. Fixture-ready permits downstream fixture implementation
+          and testing only. It never permits a dependent card to become done. Any card with Client
+          dependencies may move to done only after every listed Client dependency is itself done, in
+          addition to satisfying its own acceptance criteria and external gate rules. Evidence
+          obtained against fixtures must be labeled fixture-only. Fixture-only evidence cannot
+          satisfy or be described as live or release evidence, and cannot close an external gate.
+        </p>
+        <ul id="legend" class="legend-list"></ul>
+      </details>
+    </section>
+
+    <section id="runtimeFallback" class="empty">
+      <h2>Board data is unavailable</h2>
+      <p>JavaScript did not finish initializing. Inspect the CARDS array in this file to read the complete board data.</p>
+    </section>
+    <footer>Update card state by editing the <code>CARDS</code> array in this file.</footer>
+  </main>
+
+  <script>
+    const STATES = [
+      { key: "backlog", label: "Backlog", description: "Not approved, criteria incomplete, or waiting for a predecessor that is not fixture-ready." },
+      { key: "ready", label: "Ready", description: "Approved with explicit criteria and fixture-ready Client predecessors." },
+      { key: "progress", label: "In progress", description: "Owned, started, and actively implemented." },
+      { key: "testing", label: "Testing", description: "Fixture-ready only with own Client evidence complete, every Client dependency fixture-ready, and no other blockers; fixture-only evidence stays labeled, and testing alone never permits dependent Done." },
+      { key: "blocked", label: "Blocked", description: "A concrete blocker and resume condition are recorded." },
+      { key: "done", label: "Done", description: "Every criterion has evidence; every Client dependency is Done; every listed server gate is complete with required live or release evidence; fixture-only evidence cannot satisfy those gates." }
+    ];
+
+    const PRIORITIES = ["p0", "p1", "p2"];
+    const SUBSYSTEMS = ["foundation", "tenant", "departments", "attendance", "ui", "release"];
+
+    const CARDS = [
+      {
+        id: "C-SKUD-01",
+        title: "Shared admin client foundation",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "foundation",
+        owner: "Unassigned",
+        dependencies: [],
+        externalDependencies: [],
+        acceptance: [
+          "Shared reply parsing and typed mutation results are available.",
+          "Path segments are encoded safely.",
+          "Core unit tests pass."
+        ],
+        next: "Obtain explicit product implementation approval, then write failing core tests.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. Board bootstrap does not authorize product implementation.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-02",
+        title: "Tenant context selection",
+        state: "backlog",
+        priority: "p0",
+        subsystem: "tenant",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-01"],
+        externalDependencies: ["TENANT-01"],
+        acceptance: [
+          "Only active organizations are selectable.",
+          "Successful switching publishes the new tenant and reruns session bootstrap.",
+          "A failed switch preserves the prior valid session.",
+          "Core and widget tests pass.",
+          "Every listed server gate is complete and live or release evidence is recorded before this card moves to done."
+        ],
+        next: "Wait for C-SKUD-01 and explicit product implementation approval.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. TENANT-01 is required for live verification.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-03",
+        title: "Department domain client and hierarchy model",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "departments",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-01"],
+        externalDependencies: [],
+        acceptance: [
+          "Department envelopes and mutations are parsed strictly.",
+          "Updates use full-replacement requests.",
+          "Cycle and orphan repair is deterministic.",
+          "Core unit tests pass."
+        ],
+        next: "Wait for C-SKUD-01 and explicit product implementation approval.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. Board bootstrap does not authorize product implementation.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-04",
+        title: "Read-only Departments screen",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "departments",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-02", "C-SKUD-03"],
+        externalDependencies: [],
+        acceptance: [
+          "Hierarchy, search, and diagnostics follow the approved design.",
+          "Loading, stale, empty, error, and tenant-blocked states are explicit.",
+          "Read-only permissions, keyboard use, and accessibility are covered.",
+          "Widget tests pass."
+        ],
+        next: "Wait for tenant and department foundations.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. Board bootstrap does not authorize product implementation.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-05",
+        title: "Department mutations",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "departments",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-04"],
+        externalDependencies: [],
+        acceptance: [
+          "Create, edit, re-parent, and delete require devices.write.",
+          "Delete confirmation is safe and cancellation is the default.",
+          "Unknown mutation outcomes and concurrent deletion reconcile by reload.",
+          "Widget tests pass."
+        ],
+        next: "Wait for the read-only Departments screen.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. Board bootstrap does not authorize product implementation.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-06",
+        title: "Attendance warning domain client",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "attendance",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-01"],
+        externalDependencies: ["TA-03", "TA-04"],
+        acceptance: [
+          "Warning envelopes, review responses, and person states are parsed strictly.",
+          "The wire date is parsed only as YYYY-MM-DD.",
+          "Person lookup concurrency and cancellation are bounded.",
+          "Core unit tests pass.",
+          "Every listed server gate is complete and live or release evidence is recorded before this card moves to done."
+        ],
+        next: "Wait for C-SKUD-01 and explicit product implementation approval.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. TA-03 and TA-04 are required for live verification.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-07",
+        title: "Read-only Attendance Warnings screen",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "attendance",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-02", "C-SKUD-06"],
+        externalDependencies: ["TA-04"],
+        acceptance: [
+          "Filters and offset paging reject stale responses and visible duplicates.",
+          "Person lookup states remain distinguishable.",
+          "Accounting dates display as DD-MM-YYYY only on screen.",
+          "Widget tests pass.",
+          "Every listed server gate is complete and live or release evidence is recorded before this card moves to done."
+        ],
+        next: "Wait for tenant and attendance foundations.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. TA-04 is required for live verification.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-08",
+        title: "Attendance warning review flow",
+        state: "backlog",
+        priority: "p0",
+        subsystem: "attendance",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-07"],
+        externalDependencies: ["TA-03"],
+        acceptance: [
+          "Review requires devices.write and uses first-write-wins semantics.",
+          "The server reviewer and timestamp are authoritative.",
+          "Success reloads page one; 409 and 404 reconcile without mutation retry.",
+          "Widget tests pass.",
+          "Every listed server gate is complete and live or release evidence is recorded before this card moves to done."
+        ],
+        next: "Wait for the read-only Attendance Warnings screen.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. TA-03 is required for live verification.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-09",
+        title: "Launcher and application registration",
+        state: "backlog",
+        priority: "p1",
+        subsystem: "ui",
+        owner: "Unassigned",
+        dependencies: ["C-SKUD-05", "C-SKUD-08"],
+        externalDependencies: ["REL-01"],
+        acceptance: [
+          "Both applications have icons, registry entries, and launcher mappings.",
+          "devices.read controls visibility without a new capability.",
+          "Existing Devices and Users mappings remain intact.",
+          "Registry, launcher, and icon regression tests pass.",
+          "Every listed server gate is complete and live or release evidence is recorded before this card moves to done."
+        ],
+        next: "Wait for C-SKUD-05 and C-SKUD-08 to become fixture-ready, then start fixture implementation and testing.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. REL-01 is required for release-environment verification.",
+        blocker: null
+      },
+      {
+        id: "C-SKUD-10",
+        title: "Full Client release gate",
+        state: "backlog",
+        priority: "p0",
+        subsystem: "release",
+        owner: "Unassigned",
+        dependencies: [
+          "C-SKUD-01",
+          "C-SKUD-02",
+          "C-SKUD-03",
+          "C-SKUD-04",
+          "C-SKUD-05",
+          "C-SKUD-06",
+          "C-SKUD-07",
+          "C-SKUD-08",
+          "C-SKUD-09"
+        ],
+        externalDependencies: ["REL-01", "TA-03", "TA-04", "TENANT-01"],
+        acceptance: [
+          "The production bst_vms_client target builds.",
+          "Both complete unit-test binaries pass unfiltered.",
+          "Tenant admin, viewer, and cross-tenant flows pass live E2E.",
+          "Existing Devices and Users applications still work.",
+          "Logout clears context and logs contain no tokens.",
+          "Every listed server gate is complete and live or release evidence is recorded before this card moves to done."
+        ],
+        next: "Wait for C-SKUD-01 through C-SKUD-09 to become fixture-ready, then start fixture verification; completion still requires every Client dependency done, all listed server gates complete, and live or release evidence.",
+        startedAt: null,
+        updatedAt: "2026-07-13",
+        completedAt: null,
+        evidence: "Not started. All Client and external dependencies remain open.",
+        blocker: null
+      }
+    ];
+
+    const FILTER_GROUPS = [
+      { key: "state", label: "State", values: STATES.map(({ key, label }) => ({ key, label })) },
+      { key: "priority", label: "Priority", values: PRIORITIES.map((key) => ({ key, label: key.toUpperCase() })) },
+      { key: "subsystem", label: "Subsystem", values: SUBSYSTEMS.map((key) => ({ key, label: key })) }
+    ];
+
+    const activeFilters = Object.fromEntries(
+      FILTER_GROUPS.map(({ key, values }) => [key, new Set(values.map((value) => value.key))])
+    );
+
+    const filterGroups = document.getElementById("filterGroups");
+    const board = document.getElementById("board");
+    const summary = document.getElementById("summary");
+    const empty = document.getElementById("empty");
+    const legend = document.getElementById("legend");
+    const resultStatus = document.getElementById("resultStatus");
+    const runtimeFallback = document.getElementById("runtimeFallback");
+
+    function createText(tag, text, className) {
+      const element = document.createElement(tag);
+      element.textContent = text;
+      if (className) element.className = className;
+      return element;
+    }
+
+    function displayValue(value) {
+      if (Array.isArray(value)) return value.length ? value.join(", ") : "None";
+      if (value === null || value === "") return "None";
+      return value;
+    }
+
+    function addDefinition(list, term, value) {
+      list.append(createText("dt", term));
+      const definition = document.createElement("dd");
+      if (Array.isArray(value) && term === "Acceptance") {
+        const items = document.createElement("ul");
+        value.forEach((item) => items.append(createText("li", item)));
+        definition.append(items);
+      } else {
+        definition.textContent = displayValue(value);
+      }
+      list.append(definition);
+    }
+
+    function visibleCards() {
+      return CARDS.filter((card) => activeFilters.state.has(card.state)
+        && activeFilters.priority.has(card.priority)
+        && activeFilters.subsystem.has(card.subsystem));
+    }
+
+    function renderFilterChips() {
+      filterGroups.replaceChildren();
+      FILTER_GROUPS.forEach((group) => {
+        const wrapper = document.createElement("section");
+        wrapper.className = "filter-group";
+        wrapper.setAttribute("aria-label", group.label + " filters");
+        wrapper.append(createText("span", group.label, "filter-label"));
+
+        group.values.forEach((value) => {
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "filter-chip";
+          chip.dataset.group = group.key;
+          chip.dataset.value = value.key;
+          chip.textContent = value.label;
+          chip.setAttribute("aria-pressed", String(activeFilters[group.key].has(value.key)));
+          chip.addEventListener("click", () => {
+            const selected = activeFilters[group.key];
+            if (selected.has(value.key)) selected.delete(value.key); else selected.add(value.key);
+            renderFilterChips();
+            renderBoard();
+          });
+          wrapper.append(chip);
+        });
+
+        filterGroups.append(wrapper);
+      });
+    }
+
+    function createCard(card) {
+      const article = document.createElement("details");
+      article.className = "card";
+      article.dataset.priority = card.priority;
+      article.dataset.state = card.state;
+      article.style.setProperty("--state-colour", `var(--${card.state})`);
+      article.style.setProperty("--state-background", `var(--${card.state}-bg)`);
+
+      const cardSummary = document.createElement("summary");
+      cardSummary.className = "card-summary";
+
+      const badges = document.createElement("div");
+      badges.className = "badges";
+      badges.append(createText("span", card.priority.toUpperCase(), "badge badge-priority " + card.priority));
+      badges.append(createText("span", card.subsystem, "badge"));
+      badges.append(createText("span", card.id, "badge badge-id"));
+      cardSummary.append(badges);
+      cardSummary.append(createText("h3", card.title));
+
+      const meta = createText(
+        "p",
+        "Owner: " + displayValue(card.owner) + " | Updated: " + displayValue(card.updatedAt),
+        "card-meta"
+      );
+      cardSummary.append(meta);
+      const disclosureLabel = createText("span", "Show details", "disclosure-label");
+      cardSummary.append(disclosureLabel);
+      article.append(cardSummary);
+
+      const details = document.createElement("div");
+      details.className = "card-details";
+      const list = document.createElement("dl");
+      addDefinition(list, "Next", card.next);
+      addDefinition(list, "Owner", card.owner);
+      addDefinition(list, "Dependencies", card.dependencies);
+      addDefinition(list, "Server gates", card.externalDependencies);
+      addDefinition(list, "Acceptance", card.acceptance);
+      addDefinition(list, "Started", card.startedAt);
+      addDefinition(list, "Updated", card.updatedAt);
+      addDefinition(list, "Completed", card.completedAt);
+      addDefinition(list, "Evidence", card.evidence);
+      addDefinition(list, "Blocker", card.blocker);
+      details.append(list);
+      article.append(details);
+      article.addEventListener("toggle", () => {
+        disclosureLabel.textContent = article.open ? "Hide details" : "Show details";
+      });
+      return article;
+    }
+
+    function renderSummary() {
+      summary.replaceChildren();
+      STATES.forEach((state) => {
+        const item = document.createElement("div");
+        item.className = "summary-item";
+        item.dataset.state = state.key;
+        item.style.setProperty("--state-colour", `var(--${state.key})`);
+        item.style.setProperty("--state-background", `var(--${state.key}-bg)`);
+        item.append(createText("span", state.label));
+        item.append(createText("strong", String(CARDS.filter((card) => card.state === state.key).length)));
+        summary.append(item);
+      });
+    }
+
+    function renderBoard() {
+      const cards = visibleCards();
+      board.replaceChildren();
+      empty.classList.toggle("hidden", cards.length !== 0);
+      resultStatus.textContent = "Showing " + cards.length + " of " + CARDS.length + " cards.";
+
+      STATES.forEach((state) => {
+        const laneCards = cards.filter((card) => card.state === state.key);
+        const lane = document.createElement("section");
+        lane.className = "lane";
+        lane.dataset.state = state.key;
+        lane.style.setProperty("--state-colour", `var(--${state.key})`);
+        lane.style.setProperty("--state-background", `var(--${state.key}-bg)`);
+
+        const heading = document.createElement("div");
+        heading.className = "lane-head";
+        heading.append(createText("span", state.label));
+        heading.append(createText("span", String(laneCards.length), "count"));
+        lane.append(heading);
+        lane.append(createText("p", state.description, "lane-description"));
+
+        const cardList = document.createElement("div");
+        cardList.className = "card-list";
+        if (laneCards.length) laneCards.forEach((card) => cardList.append(createCard(card)));
+        else cardList.append(createText("p", "No matching cards", "col-empty"));
+        lane.append(cardList);
+        board.append(lane);
+      });
+    }
+
+    function resetFilters() {
+      FILTER_GROUPS.forEach((group) => {
+        activeFilters[group.key].clear();
+        group.values.forEach((value) => activeFilters[group.key].add(value.key));
+      });
+      renderFilterChips();
+      renderBoard();
+      document.getElementById("resetFilters").focus();
+    }
+
+    function renderLegend() {
+      legend.replaceChildren();
+      STATES.forEach((state) => {
+        legend.append(createText("li", state.label + ": " + state.description));
+      });
+    }
+
+    function initializeBoard() {
+      renderFilterChips();
+      renderSummary();
+      renderLegend();
+      renderBoard();
+      document.getElementById("resetFilters").addEventListener("click", resetFilters);
+      document.getElementById("emptyReset").addEventListener("click", resetFilters);
+      runtimeFallback.classList.add("hidden");
+    }
+
+    initializeBoard();
+  </script>
+</body>
+</html>
