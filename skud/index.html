@@ -928,12 +928,13 @@
   const CARDS = [
     {
       id: "PR-CLEAN-01",
-      lane: "progress",
+      lane: "blocked",
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Идёт read-only инвентарь ветки, рабочей копии и T&A-кандидатов. Коммит, push, merge и deploy не разрешены.",
-      next: "Подтвердить базу PR, ownership файлов и необходимость отдельной чистой ветки.",
+      note: "Read-only Phase 0 завершён: текущая ветка смешивает 90 файлов и 17 501 добавление, а pending T&A migration несовместима с текущим порядком deploy до остановки старого API. Scope ограничен базовым SKUD/T&A и текущим Hikvision attribution; Telegram, ZKTeco и новые внешние интеграции исключены.",
+      blocker: "Нужно явное разрешение создать отдельную чистую ветку/worktree от origin/main и отдельно согласовать безопасный cutover старого T&A writer.",
+      next: "После разрешения создать чистую базу, выделить T&A stack и исправить deploy contract до commit.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
@@ -1229,13 +1230,13 @@
     },
     {
       id: "NOTIFY-01",
-      lane: "ready",
-      priority: "p1",
+      lane: "backlog",
+      priority: "p2",
       subsystem: "alarms",
       title: "Telegram-диспетчер для persons.telegram_*",
-      note: "Поля и существующий alerting contour есть, но персональная доставка событий СКД не подключена.",
-      next: "Phase 0 на reuse существующего Telegram executor без второго notification bus.",
-      updatedAt: "2026-07-08"
+      note: "Внешняя Telegram-интеграция отложена: сначала завершается базовый функционал СКД и учёта времени.",
+      next: "После базового функционала и отдельного Phase 0 переиспользовать существующий Telegram executor без второго notification bus.",
+      updatedAt: "2026-07-14"
     },
     {
       id: "SYNC-01",
@@ -1275,9 +1276,9 @@
       priority: "p2",
       subsystem: "drivers",
       title: "Драйвер ZKTeco",
-      note: "В ACS драйвер существует, в BST соответствующего Rust пути нет.",
-      next: "Сначала подтвердить реальное оборудование и протокол, затем выполнить dependency proof.",
-      updatedAt: "2026-07-08"
+      note: "Внешний брендовый драйвер отложен до завершения базового функционала СКД и учёта времени.",
+      next: "После базового функционала подтвердить реальное оборудование и протокол, затем выполнить dependency proof.",
+      updatedAt: "2026-07-14"
     },
     {
       id: "UI-01",
@@ -1305,9 +1306,9 @@
       priority: "p2",
       subsystem: "identity",
       title: "Биометрия и legacy OTAP",
-      note: "Python sidecars ACS несовместимы с Rust-only каноном BST и не переносятся как процессы.",
-      next: "Отдельное cross-zone решение: Rust rewrite или осознанный skip.",
-      updatedAt: "2026-07-08",
+      note: "Биометрия и legacy-интеграции остаются низким приоритетом до завершения базового функционала СКД и учёта времени.",
+      next: "После базового функционала принять отдельное cross-zone решение: Rust rewrite или осознанный skip.",
+      updatedAt: "2026-07-14",
       links: [{ label: "ADR", href: "../ADR_acs_integration_boundary_2026_07_08.md" }]
     },
     {
