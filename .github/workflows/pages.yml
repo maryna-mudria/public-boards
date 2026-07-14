@@ -33,12 +33,12 @@ jobs:
 
       - name: Stage public site
         run: |
-          if find index.html asr call-ai skud -type l -print -quit | grep -q .; then
+          if find index.html asr call-ai skud client-skud -type l -print -quit | grep -q .; then
             echo "refusing to stage symlinked public content" >&2
             exit 1
           fi
 
-          for file in index.html asr/index.html call-ai/index.html skud/index.html; do
+          for file in index.html asr/index.html call-ai/index.html skud/index.html client-skud/index.html; do
             if [ ! -f "$file" ]; then
               echo "not a regular file: $file" >&2
               exit 1
@@ -46,11 +46,12 @@ jobs:
           done
 
           rm -rf _site
-          mkdir -p _site/asr _site/call-ai _site/skud
+          mkdir -p _site/asr _site/call-ai _site/skud _site/client-skud
           install -m 0644 index.html _site/index.html
           install -m 0644 asr/index.html _site/asr/index.html
           install -m 0644 call-ai/index.html _site/call-ai/index.html
           install -m 0644 skud/index.html _site/skud/index.html
+          install -m 0644 client-skud/index.html _site/client-skud/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

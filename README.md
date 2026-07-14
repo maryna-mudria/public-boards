@@ -6,3 +6,4 @@ repositories.
 - [ASR theory board](https://maryna-mudria.github.io/public-boards/asr/)
 - [Call AI execution board](https://maryna-mudria.github.io/public-boards/call-ai/)
 - [BST SKUD execution board](https://maryna-mudria.github.io/public-boards/skud/)
+- [SKUD Client execution board](https://maryna-mudria.github.io/public-boards/client-skud/)
