@@ -791,7 +791,7 @@
       <dl>
         <dt>Ветка</dt><dd class="branch">maryna/skud-ta</dd>
         <dt>Merge commit</dt><dd class="branch">6daadf3ea7f5</dd>
-        <dt>PR</dt><dd><a href="https://github.com/extend08/BST-OS/pull/15">#15 · OPEN</a></dd>
+        <dt>PR</dt><dd><a href="https://github.com/extend08/BST-OS/pull/15">#15 · удалённый статус не проверен</a></dd>
         <dt>Merge</dt><dd>COMMITTED / 6daadf3ea</dd>
         <dt>Checks</dt><dd>local scoped gate PASS</dd>
         <dt>Deploy</dt><dd>не выполнялся</dd>
@@ -927,13 +927,49 @@
 
   const CARDS = [
     {
+      id: "DOCS-03",
+      lane: "done",
+      priority: "p0",
+      subsystem: "foundation",
+      title: "Закоммитить проверенную документацию SKUD/T&A",
+      note: "Проверенная документация SKUD/T&A закрыта локальным commit. В scope вошли только документы SKUD/T&A.",
+      evidence: "Два независимых read-only review дали APPROVE. Проверки Markdown, ссылок, доски и git diff --check прошли; cargo test --workspace и clippy прошли через Command Line Tools, SKUD Vitest прошёл 25 files / 53 tests, frontend lint завершился без errors с унаследованными warnings.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14",
+      links: [{ label: "Review status", href: "../CURRENT_STATUS.md" }]
+    },
+    {
+      id: "DOCS-02",
+      lane: "done",
+      priority: "p0",
+      subsystem: "foundation",
+      title: "Исправить findings review документации SKUD/T&A",
+      note: "Точечно исправлены три P1 и четыре P2: статус PR, границы push, person lifecycle, счётчик карточек, event writer, tenant scope и BLE field.",
+      evidence: "Два независимых read-only review дали APPROVE. Git ancestry подтверждает статусы 3aec2701cf и 6daadf3; Markdown-файлы, схема карточек, JavaScript, локальные ссылки и git diff --check прошли.",
+      startedAt: "2026-07-13",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Review status", href: "../CURRENT_STATUS.md" }]
+    },
+    {
+      id: "REVIEW-02",
+      lane: "done",
+      priority: "p0",
+      subsystem: "release",
+      title: "Проверить документационную дельту SKUD/T&A перед коммитом",
+      note: "Независимое read-only review завершено. Коммит требует правок: удалённо не подтверждённый статус PR, слишком широкие утверждения о push и неверное описание person lifecycle как canonical baseline.",
+      evidence: "Три P1 и четыре P2 findings. Проверки прошли: diff --check, 41 Markdown-файл без битых локальных ссылок, статические href и JavaScript доски. Commit не выполнялся.",
+      startedAt: "2026-07-13",
+      updatedAt: "2026-07-13",
+      links: [{ label: "Current status", href: "../CURRENT_STATUS.md" }]
+    },
+    {
       id: "DOCS-01",
-      lane: "progress",
+      lane: "done",
       priority: "p0",
       subsystem: "foundation",
       title: "Оформить актуальную документацию SKUD/T&A",
-      note: "Консолидировать текущий статус, навигацию, runtime-контракты и исторические snapshot без изменения кода.",
-      next: "Создать единый CURRENT_STATUS, исправить ссылки и отделить historical-документы от текущей истины.",
+      note: "Созданы current status и T&A overview, рабочие контракты отделены от historical snapshots, ссылки и устаревшие runtime-утверждения исправлены.",
+      evidence: "Проверены 41 SKUD Markdown-файл без битых локальных ссылок, 17 target-specifications и 5 historical snapshots, а также HTML-доска: JavaScript компилируется, локальные href разрешаются, схема карточек валидна.",
       startedAt: "2026-07-13",
       updatedAt: "2026-07-13",
       links: [{ label: "Current status", href: "../CURRENT_STATUS.md" }]
@@ -956,7 +992,7 @@
       subsystem: "foundation",
       title: "Создать read-only execution board",
       note: "Автономная HTML-доска по переносу ACS в BST и обязательный протокол обновления статусов для Claude/Codex.",
-      evidence: "Read-only HTML без сетевой записи; 29 карточек имеют уникальные id; JavaScript компилируется; локальные ссылки разрешаются; merge commit 6daadf3ea записан в snapshot.",
+      evidence: "Read-only HTML без сетевой записи; карточки имеют уникальные id; JavaScript компилируется; локальные ссылки разрешаются; merge commit 6daadf3ea записан в snapshot.",
       startedAt: "2026-07-13",
       updatedAt: "2026-07-13",
       links: [
@@ -982,7 +1018,7 @@
       subsystem: "release",
       title: "Первый deploy и живые L2/L3 доказательства",
       note: "Ни одна миграция или функция этой ветки ещё не проверялась на живой БД и оборудовании.",
-      blocker: "Deploy и живые L2/L3 доказательства не входят в текущий commit. Для ryzen7 нужна отдельная явная команда оператора после закрытия REL-01.",
+      blocker: "Deploy и живые L2/L3 доказательства не входят в текущую документационную задачу. Для ryzen7 нужна отдельная явная команда оператора.",
       updatedAt: "2026-07-13",
       links: [{ label: "Handoff", href: "../HANDOFF_2026_07_08_session_closeout.md" }]
     },
@@ -1037,13 +1073,14 @@
     },
     {
       id: "TA-02",
-      lane: "testing",
+      lane: "done",
       priority: "p1",
       subsystem: "ta",
       title: "Защита поздних событий и ручных исправлений",
       note: "Добавлено 30-секундное replay-окно и запрет автоматического перезаписывания edited-сессий.",
-      next: "Интеграционный тест с поздним occurred_at и повторным событием после ручной коррекции.",
-      updatedAt: "2026-07-09"
+      evidence: "На свежем локальном PostgreSQL 18, доступном только через localhost, выполнен bootstrap с --require-fresh; новый DB regression test доказан red/green: при временном отключении guard упал, после восстановления прошёл. Полный skud_worker_tests harness: 10/10. Временный кластер остановлен и удалён.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14"
     },
     {
       id: "TA-03",
@@ -1052,7 +1089,7 @@
       subsystem: "ta",
       title: "Зафиксировать первый ACK attendance warning",
       note: "Текущий POST повторно перезаписывает acknowledged_by и acknowledged_at. Нативный клиент требует first-write-wins, чтобы поздний или конкурентный ACK не менял исходный аудит.",
-      next: "После REL-01 сделать атомарный переход acknowledged=false в true. Первый ACK фиксирует автора и время и возвращает acknowledged_by плюс acknowledged_at; повторный или конкурентный ACK возвращает 409 warning already acknowledged без изменения записи; отсутствующий или чужой warning остаётся 404. Доказать DB integration test.",
+      next: "После отдельного Phase 0 и явного одобрения сделать атомарный переход acknowledged=false в true. Первый ACK фиксирует автора и время и возвращает acknowledged_by плюс acknowledged_at; повторный или конкурентный ACK возвращает 409 warning already acknowledged без изменения записи; отсутствующий или чужой warning остаётся 404. Доказать DB integration test.",
       updatedAt: "2026-07-13"
     },
     {
@@ -1062,7 +1099,7 @@
       subsystem: "ta",
       title: "Устранить неоднозначность accounting_date",
       note: "Текущий i32 кодирует полночь площадки без timezone и не позволяет клиенту надёжно восстановить календарную дату для всех часовых поясов.",
-      next: "После REL-01 добавить nullable accounting_date_local в каноническом формате YYYY-MM-DD и временно сохранить legacy accounting_date для совместимости. Проверить календарные границы и разные timezone сервера, площадки и клиента; клиент отображает дату как DD-MM-YYYY.",
+      next: "После отдельного Phase 0 и явного одобрения добавить nullable accounting_date_local в каноническом формате YYYY-MM-DD и временно сохранить legacy accounting_date для совместимости. Проверить календарные границы и разные timezone сервера, площадки и клиента; клиент отображает дату как DD-MM-YYYY.",
       updatedAt: "2026-07-13"
     },
     {
@@ -1139,7 +1176,7 @@
       subsystem: "foundation",
       title: "Добавить tenant context для cross-tenant admin",
       note: "Без выбранного tenant departments смешиваются без tenant_id в элементах, create не работает, а update/delete и warning ACK могут затронуть запись любой организации по id.",
-      next: "После REL-01 расширить POST /api/v1/auth/switch-context: для cross-tenant роли принимать tenant_id, проверять активный tenant и выдавать новый JWT с этим контекстом; существующий role_id flow сохранить. GET /api/v1/tenants остаётся источником вариантов. Новый JWT одинаково ограничивает списки и мутации departments и warnings; отсутствие выбора закрывается до domain-запроса; tenant-scoped пользователь не может подменить tenant. Доказать интеграционными тестами чтения и записи.",
+      next: "После отдельного Phase 0 и явного одобрения расширить POST /api/v1/auth/switch-context: для cross-tenant роли принимать tenant_id, проверять активный tenant и выдавать новый JWT с этим контекстом; существующий role_id flow сохранить. GET /api/v1/tenants остаётся источником вариантов. Новый JWT одинаково ограничивает списки и мутации departments и warnings; отсутствие выбора закрывается до domain-запроса; tenant-scoped пользователь не может подменить tenant. Доказать интеграционными тестами чтения и записи.",
       updatedAt: "2026-07-13"
     },
     {
@@ -1249,13 +1286,14 @@
     },
     {
       id: "META-01",
-      lane: "ready",
+      lane: "done",
       priority: "p1",
       subsystem: "foundation",
       title: "Синхронизировать старую локальную формулировку subtree",
-      note: "CLAUDE.local и его Codex-копия всё ещё содержат старый план crates/acs-* через subtree, который противоречит принятому ADR.",
-      next: "Отдельно заменить устаревший раздел на lift pure + rewrite glue и manual re-port.",
-      updatedAt: "2026-07-13",
+      note: "Четыре активных локальных правила синхронизированы с ADR: чистая логика переносится в bst-policy, интеграция переписывается вручную, subtree запрещён.",
+      evidence: "CLAUDE.local и Codex-копия идентичны; старые положительные subtree-формулировки отсутствуют; оба Python hook прошли syntax и allow/ask/deny проверки, включая явный deny crates/acs-*.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14",
       links: [{ label: "ADR", href: "../ADR_acs_integration_boundary_2026_07_08.md" }]
     }
   ];
