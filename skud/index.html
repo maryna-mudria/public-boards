@@ -1084,13 +1084,14 @@
     },
     {
       id: "TA-03",
-      lane: "backlog",
+      lane: "progress",
       priority: "p0",
       subsystem: "ta",
       title: "Зафиксировать первый ACK attendance warning",
       note: "Текущий POST повторно перезаписывает acknowledged_by и acknowledged_at. Нативный клиент требует first-write-wins, чтобы поздний или конкурентный ACK не менял исходный аудит.",
-      next: "После отдельного Phase 0 и явного одобрения сделать атомарный переход acknowledged=false в true. Первый ACK фиксирует автора и время и возвращает acknowledged_by плюс acknowledged_at; повторный или конкурентный ACK возвращает 409 warning already acknowledged без изменения записи; отсутствующий или чужой warning остаётся 404. Доказать DB integration test.",
-      updatedAt: "2026-07-13"
+      next: "TDD: добавить DB regression для первого, повторного и конкурентного ACK, затем сделать атомарный переход acknowledged=false в true.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14"
     },
     {
       id: "TA-04",
