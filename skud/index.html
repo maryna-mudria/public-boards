@@ -1095,12 +1095,13 @@
     },
     {
       id: "TA-04",
-      lane: "done",
+      lane: "testing",
       priority: "p0",
       subsystem: "ta",
       title: "Устранить неоднозначность accounting_date",
       note: "Новые смены хранят локальную календарную дату площадки отдельно от legacy epoch; старые строки не получают backfill.",
       evidence: "Новая forward-only nullable DATE migration применяется на свежей localhost-only PostgreSQL 18; schema check подтвердил поле accounting_date_local. Unit: 3/3. Полный последовательный skud_worker_tests harness: 12/12, включая worker-created дату, строгий manual ISO input, отказ numeric/overflow input и отсутствие backfill legacy NULL после конфликтной ручной правки/recompute. Frontend contract tests: 4/4, список и П-5 не вычисляют табельные даты в timezone браузера. Временный кластер остановлен и удалён.",
+      next: "Дотошное post-implementation review текущего SKUD/T&A diff: контракты, БД, API/UI, тесты и maintainability.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
