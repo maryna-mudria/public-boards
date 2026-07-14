@@ -932,9 +932,9 @@
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Read-only Phase 0 завершён: текущая ветка смешивает 90 файлов и 17 501 добавление. Чистая ветка maryna/skud-ta-for-PR создана от origin/main. Scope ограничен базовым SKUD/T&A и текущим Hikvision attribution; Telegram, ZKTeco и новые внешние интеграции исключены.",
-      blocker: "Нужно отдельно согласовать безопасный cutover старого и нового T&A writer до migration 20260714140000.",
-      next: "Выделить T&A stack в чистой базе и исправить deployment contract до commit.",
+      note: "Read-only Phase 0 завершён: текущая ветка смешивает 90 файлов и 17 501 добавление. Чистая ветка maryna/skud-ta-for-PR создана от origin/main. Локальный TA-04 содержит 9 tracked файлов, 5 миграций и 3 untracked frontend-теста; source worker и manual sessions writer используют legacy arbiter. Scope ограничен базовым SKUD/T&A и текущим Hikvision attribution; Telegram, ZKTeco и новые внешние интеграции исключены.",
+      blocker: "Нужно отдельно согласовать безопасный cutover старого и нового T&A writer до migration 20260714140000 и scope для attendance sessions/UI, отсутствующих в исходном списке кандидатов.",
+      next: "Выделить core T&A и Hikvision stack в чистой базе; TA-04 переносить только после исправления deployment contract.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
