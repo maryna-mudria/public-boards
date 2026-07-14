@@ -1140,6 +1140,17 @@
       links: [{ label: "Sync marker", href: "../acs_sync_state.md" }]
     },
     {
+      id: "ACCESS-04",
+      lane: "progress",
+      priority: "p0",
+      subsystem: "access",
+      title: "Закрыть утечку области доступа в реплике ресурсов",
+      note: "Снимок и журнал изменений должны возвращать только ресурсы из effective scope оператора, сохраняя курсор скрытых изменений.",
+      next: "Сначала зафиксировать падающие Rust regression tests, затем применить существующий effective access в обоих API путях.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14"
+    },
+    {
       id: "OCC-01",
       lane: "testing",
       priority: "p0",
