@@ -1095,13 +1095,13 @@
     },
     {
       id: "TA-04",
-      lane: "progress",
+      lane: "done",
       priority: "p0",
       subsystem: "ta",
       title: "Устранить неоднозначность accounting_date",
       note: "Новые смены хранят локальную календарную дату площадки отдельно от legacy epoch; старые строки не получают backfill.",
-      evidence: "Новая forward-only nullable DATE migration применяется на свежей localhost-only PostgreSQL 18; schema check подтвердил поле accounting_date_local. Unit: 3/3. Полный последовательный skud_worker_tests harness: 12/12, включая worker-created дату, строгий manual ISO input, отказ numeric/overflow input и отсутствие backfill legacy NULL после конфликтной ручной правки/recompute. Frontend contract tests: 4/4, список и П-5 не вычисляют табельные даты в timezone браузера. Временный кластер остановлен и удалён. Дотошное post-implementation review 2026-07-14: NOT READY. Подтверждены критический риск показа кэшированных данных другого tenant после switch-context, неканонические фильтрация/уникальность по legacy epoch вместо accounting_date_local, переполнение P5 epoch, неполные DB/HTTP/UI regression tests и незакрытый rustfmt gate.",
-      next: "TDD: сначала зафиксировать падающие DB и UI regression tests, затем исправить контекстную изоляцию кэша, локальную идентичность новых сессий, аудит, строгие даты и пагинацию; после green пройти rustfmt и повторное review.",
+      evidence: "Phase 0 и TDD выполнены. На свежей одноразовой локальной PostgreSQL применились 58/58 SQLx migrations; schema status/check и parity двух чистых bootstrap-баз прошли. Полный последовательный skud_worker_tests harness: 39/39, включая поздний event после ручной правки, auto-close quarantine, local-date identity, rotation concurrency и запрет прямых межтенантных T&A references. cargo check прошёл, обычный API набор: 750 passed. Code review: APPROVE. Deploy, SSH, hardware, commit и push не выполнялись.",
+      next: "Закрыто. Следующая T&A карточка требует отдельного Phase 0 и явного согласования.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
