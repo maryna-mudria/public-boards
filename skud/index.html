@@ -1095,12 +1095,12 @@
     },
     {
       id: "TA-04",
-      lane: "progress",
+      lane: "done",
       priority: "p0",
       subsystem: "ta",
       title: "Устранить неоднозначность accounting_date",
-      note: "Текущий i32 кодирует полночь площадки без timezone и не позволяет клиенту надёжно восстановить календарную дату для всех часовых поясов.",
-      next: "TDD: добавить nullable DATE только для новых сессий, серверный fallback для legacy строк, строгий manual input и timezone-независимые список смен/П-5/UI.",
+      note: "Новые смены хранят локальную календарную дату площадки отдельно от legacy epoch; старые строки не получают backfill.",
+      evidence: "Новая forward-only nullable DATE migration применяется на свежей localhost-only PostgreSQL 18; schema check подтвердил поле accounting_date_local. Unit: 3/3. Полный последовательный skud_worker_tests harness: 12/12, включая worker-created дату, строгий manual ISO input, отказ numeric/overflow input и отсутствие backfill legacy NULL после конфликтной ручной правки/recompute. Frontend contract tests: 4/4, список и П-5 не вычисляют табельные даты в timezone браузера. Временный кластер остановлен и удалён.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
