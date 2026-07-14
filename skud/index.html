@@ -1084,24 +1084,25 @@
     },
     {
       id: "TA-03",
-      lane: "progress",
+      lane: "done",
       priority: "p0",
       subsystem: "ta",
       title: "Зафиксировать первый ACK attendance warning",
-      note: "Текущий POST повторно перезаписывает acknowledged_by и acknowledged_at. Нативный клиент требует first-write-wins, чтобы поздний или конкурентный ACK не менял исходный аудит.",
-      next: "TDD: добавить DB regression для первого, повторного и конкурентного ACK, затем сделать атомарный переход acknowledged=false в true.",
+      note: "Первый ACK атомарно фиксирует автора и время; повторный или конкурентный ACK возвращает 409 без перезаписи аудита.",
+      evidence: "TDD red/green: на новой локальной PostgreSQL 18 выполнен bootstrap с --require-fresh и schema check. Новый DB regression проверил первый, повторный, чужой, отсутствующий и конкурентный ACK; полный skud_worker_tests harness прошёл 11/11. Service/API-client subjects не могут подменить человека-автора, глобальные роли сохраняют штатное cross-tenant исключение. Временный кластер остановлен и удалён.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
     {
       id: "TA-04",
-      lane: "backlog",
+      lane: "progress",
       priority: "p0",
       subsystem: "ta",
       title: "Устранить неоднозначность accounting_date",
       note: "Текущий i32 кодирует полночь площадки без timezone и не позволяет клиенту надёжно восстановить календарную дату для всех часовых поясов.",
-      next: "После отдельного Phase 0 и явного одобрения добавить nullable accounting_date_local в каноническом формате YYYY-MM-DD и временно сохранить legacy accounting_date для совместимости. Проверить календарные границы и разные timezone сервера, площадки и клиента; клиент отображает дату как DD-MM-YYYY.",
-      updatedAt: "2026-07-13"
+      next: "TDD: добавить nullable DATE только для новых сессий, серверный fallback для legacy строк, строгий manual input и timezone-независимые список смен/П-5/UI.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14"
     },
     {
       id: "ACCESS-01",
