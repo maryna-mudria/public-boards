@@ -1100,8 +1100,8 @@
       subsystem: "ta",
       title: "Устранить неоднозначность accounting_date",
       note: "Новые смены хранят локальную календарную дату площадки отдельно от legacy epoch; старые строки не получают backfill.",
-      evidence: "Новая forward-only nullable DATE migration применяется на свежей localhost-only PostgreSQL 18; schema check подтвердил поле accounting_date_local. Unit: 3/3. Полный последовательный skud_worker_tests harness: 12/12, включая worker-created дату, строгий manual ISO input, отказ numeric/overflow input и отсутствие backfill legacy NULL после конфликтной ручной правки/recompute. Frontend contract tests: 4/4, список и П-5 не вычисляют табельные даты в timezone браузера. Временный кластер остановлен и удалён.",
-      next: "Дотошное post-implementation review текущего SKUD/T&A diff: контракты, БД, API/UI, тесты и maintainability.",
+      evidence: "Новая forward-only nullable DATE migration применяется на свежей localhost-only PostgreSQL 18; schema check подтвердил поле accounting_date_local. Unit: 3/3. Полный последовательный skud_worker_tests harness: 12/12, включая worker-created дату, строгий manual ISO input, отказ numeric/overflow input и отсутствие backfill legacy NULL после конфликтной ручной правки/recompute. Frontend contract tests: 4/4, список и П-5 не вычисляют табельные даты в timezone браузера. Временный кластер остановлен и удалён. Дотошное post-implementation review 2026-07-14: NOT READY. Подтверждены критический риск показа кэшированных данных другого tenant после switch-context, неканонические фильтрация/уникальность по legacy epoch вместо accounting_date_local, переполнение P5 epoch, неполные DB/HTTP/UI regression tests и незакрытый rustfmt gate.",
+      next: "Исправить контекстную изоляцию SWR-кэша; сделать accounting_date_local каноничной датой выборки и уникальности новых строк с legacy fallback; закрыть P5 overflow/input и DST edge cases; добавить реальные DB/HTTP/UI regression tests; пройти rustfmt и повторное review.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
@@ -1294,7 +1294,7 @@
       subsystem: "foundation",
       title: "Синхронизировать старую локальную формулировку subtree",
       note: "Четыре активных локальных правила синхронизированы с ADR: чистая логика переносится в bst-policy, интеграция переписывается вручную, subtree запрещён.",
-      evidence: "CLAUDE.local и Codex-копия идентичны; старые положительные subtree-формулировки отсутствуют; оба Python hook прошли syntax и allow/ask/deny проверки, включая явный deny crates/acs-*.",
+      evidence: "Разделы границы ACS в CLAUDE.local и Codex-копии одинаково отражают принятый ADR; старые положительные subtree-формулировки отсутствуют; оба Python hook прошли syntax и allow/ask/deny проверки, включая явный deny crates/acs-*.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14",
       links: [{ label: "ADR", href: "../ADR_acs_integration_boundary_2026_07_08.md" }]
