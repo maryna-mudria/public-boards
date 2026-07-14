@@ -928,13 +928,13 @@
   const CARDS = [
     {
       id: "PR-CLEAN-01",
-      lane: "blocked",
+      lane: "in_progress",
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Read-only Phase 0 завершён: текущая ветка смешивает 90 файлов и 17 501 добавление, а pending T&A migration несовместима с текущим порядком deploy до остановки старого API. Scope ограничен базовым SKUD/T&A и текущим Hikvision attribution; Telegram, ZKTeco и новые внешние интеграции исключены.",
-      blocker: "Нужно явное разрешение создать отдельную чистую ветку/worktree от origin/main и отдельно согласовать безопасный cutover старого T&A writer.",
-      next: "После разрешения создать чистую базу, выделить T&A stack и исправить deploy contract до commit.",
+      note: "Read-only Phase 0 завершён: текущая ветка смешивает 90 файлов и 17 501 добавление. Чистая ветка maryna/skud-ta-for-PR создана от origin/main. Scope ограничен базовым SKUD/T&A и текущим Hikvision attribution; Telegram, ZKTeco и новые внешние интеграции исключены.",
+      blocker: "Нужно отдельно согласовать безопасный cutover старого и нового T&A writer до migration 20260714140000.",
+      next: "Выделить T&A stack в чистой базе и исправить deployment contract до commit.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-14"
     },
