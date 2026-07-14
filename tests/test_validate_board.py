@@ -7,7 +7,12 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = REPOSITORY_ROOT / "scripts" / "validate-board.py"
-ALLOWED = ("asr/index.html", "call-ai/index.html", "skud/index.html")
+ALLOWED = (
+    "asr/index.html",
+    "call-ai/index.html",
+    "skud/index.html",
+    "client-skud/index.html",
+)
 SAFE_HTML = (
     "<!doctype html><html><head><title>Board</title></head>"
     "<body>ok</body></html>"
