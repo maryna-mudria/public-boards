@@ -889,9 +889,9 @@
 
 <script>
   const BOARD_META = {
-    updatedAt: "2026-07-13",
+    updatedAt: "2026-07-14",
     branch: "maryna/skud-ta",
-    head: "049c171618b008ede00138a7b67d679dc209b90e",
+    head: "f3fc4f4597fd58f3680535d2931d62b5ce8a89df",
     remoteTrackingHead: "fa30a849f136",
     mergeCommit: "6daadf3ea7f52b436166544aa73ac58f919f4c83",
     prReference: 15
@@ -1061,14 +1061,15 @@
     },
     {
       id: "TA-01",
-      lane: "testing",
+      lane: "progress",
       priority: "p0",
       subsystem: "ta",
       title: "Движок учёта рабочего времени",
       note: "State machine, recompute, expected shift, worker, auto-close, night/overtime/weighted minutes, П-5 и диагностический HTTP уже в коде.",
-      evidence: "Локальные cargo test/check были чистыми по handoff и commit evidence.",
-      next: "После явно разрешённого deploy доказать миграцию, replay-safe обработку и реальный проход на живой БД.",
-      updatedAt: "2026-07-13",
+      evidence: "Локальные T&A проверки и DB regressions зафиксированы. Запущена отдельная задача для inventory и подготовки чистого PR: 119 рабочих путей сначала разделяются на T&A, другие SKUD и чужие модули. Commit, push, merge и deploy не выполнялись.",
+      next: "Phase 0: подтвердить чистую базу и точный T&A scope для PR; не стадить чужие файлы. После verified commit отдельный исполнитель получит merge/deploy handoff с обязательным L1/L2/L3 доказательством.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14",
       links: [{ label: "Feature doc", href: "../ta_engine_port_2026_06_29.md" }]
     },
     {
