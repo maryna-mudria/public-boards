@@ -5,11 +5,15 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-EXPECTED = {
+REQUIRED = {
     "asr/index.html": "ASR theory dashboards",
     "call-ai/index.html": "Call-AI",
     "skud/index.html": "BST SKUD + T&A",
 }
+OPTIONAL = {
+    "client-skud/index.html": "SKUD Client Execution Board",
+}
+EXPECTED = REQUIRED | OPTIONAL
 ALLOWED_ROOT_HTML = {"index.html", *EXPECTED}
 HTML_SUFFIXES = {".htm", ".html"}
 
@@ -50,7 +54,12 @@ def extract_title(html):
 
 class PublicTreeTests(unittest.TestCase):
     def assert_only_allowlisted_html_files(self, repository_root):
-        self.assertEqual(find_public_html(repository_root), ALLOWED_ROOT_HTML)
+        public_html = find_public_html(repository_root)
+        self.assertTrue({"index.html", *REQUIRED}.issubset(public_html))
+        self.assertTrue(
+            public_html.issubset(ALLOWED_ROOT_HTML),
+            public_html - ALLOWED_ROOT_HTML,
+        )
 
     def assert_expected_title(self, html, expected_title):
         self.assertIn(expected_title, extract_title(html))
@@ -100,7 +109,9 @@ class PublicTreeTests(unittest.TestCase):
         for relative_path, expected_title in EXPECTED.items():
             with self.subTest(relative_path=relative_path):
                 board_path = REPOSITORY_ROOT / relative_path
-                self.assertTrue(board_path.is_file(), relative_path)
+                if not board_path.is_file():
+                    self.assertNotIn(relative_path, REQUIRED)
+                    continue
                 html = board_path.read_text(encoding="utf-8")
 
                 self.assert_expected_title(html, expected_title)
