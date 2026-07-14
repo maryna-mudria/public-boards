@@ -927,6 +927,17 @@
 
   const CARDS = [
     {
+      id: "PR-CLEAN-01",
+      lane: "progress",
+      priority: "p0",
+      subsystem: "release",
+      title: "Подготовить чистый PR только для SKUD/T&A",
+      note: "Идёт read-only инвентарь ветки, рабочей копии и T&A-кандидатов. Коммит, push, merge и deploy не разрешены.",
+      next: "Подтвердить базу PR, ownership файлов и необходимость отдельной чистой ветки.",
+      startedAt: "2026-07-14",
+      updatedAt: "2026-07-14"
+    },
+    {
       id: "DOCS-03",
       lane: "done",
       priority: "p0",
