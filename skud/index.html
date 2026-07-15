@@ -928,15 +928,15 @@
   const CARDS = [
     {
       id: "PR-CLEAN-01",
-      lane: "in_progress",
+      lane: "done",
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Read-only Phase 0 завершён: поточна гілка змішує 90 файлів і 17 501 додавання. Чиста гілка maryna/skud-ta-for-PR створена від origin/main. Foundation commit a18a976a86ed874a5fa9064de2d8903c54790100 додає T&A policy engine і scaffold. Worker commit 9b5577f2511b6d33f522de12a3da6afad0eccaf9 додає fail-closed projection через durable ledger, late-event backfill без cursor gate, tenant quarantine, protection edited session, weekly shift attribution, repeat-exit warning і timezone/config gate. Fresh PostgreSQL bootstrap, migration check, 3 focused та 8 serial integration tests пройшли. Scope обмежений базовим SKUD/T&A і поточним Hikvision attribution; Telegram, ZKTeco і нові зовнішні інтеграції виключені.",
-      blocker: "TA-04 отложен: безопасный cutover старого и нового T&A writer до migration 20260714140000 остаётся обязательным условием его отдельного PR. Строгий monorepo Clippy має успадкований борг поза T&A scope.",
-      next: "Не пушити й не deploy без нового дозволу. Потім окремий Phase 0 для точного fail-closed Hikvision attribution; TA-04 та нові інтеграції не копіювати.",
+      note: "Чистая ветка maryna/skud-ta-for-PR подготовлена от origin/main. Три логических коммита содержат только базовый SKUD/T&A: policy foundation, fail-closed worker и точную Hikvision attribution. Telegram, ZKTeco, TA-04 и другие новые интеграции не включены.",
+      evidence: "HEAD 160cbb675b11418cb94b2656a03280bdf9409fae. Ветка 0 behind и 3 ahead. Fresh PostgreSQL bootstrap и migration check прошли; 11/11 serial database tests, 2/2 Hikvision unit tests, 3/3 frontend contract tests, Rust format, API check, TypeScript, ESLint и production frontend build прошли. Рабочее дерево чистое. Push, PR, merge и deploy не выполнялись.",
+      next: "Отдельный исполнитель получает pinned commit и обязан получить явное разрешение на push, merge и deploy, подтвердить target и maintenance window, исключить смешанные старый и новый T&A writer, доказать timezone и выполнить real browser L1/L2/L3 fail-closed проверку.",
       startedAt: "2026-07-14",
-      updatedAt: "2026-07-14"
+      updatedAt: "2026-07-15"
     },
     {
       id: "DOCS-03",
