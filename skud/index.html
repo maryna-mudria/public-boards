@@ -932,11 +932,12 @@
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Чистая ветка maryna/skud-ta-for-PR подготовлена от origin/main. Три логических коммита содержат только базовый SKUD/T&A: policy foundation, fail-closed worker и точную Hikvision attribution. Telegram, ZKTeco, TA-04 и другие новые интеграции не включены.",
-      evidence: "HEAD 160cbb675b11418cb94b2656a03280bdf9409fae. Ветка 0 behind и 3 ahead. Fresh PostgreSQL bootstrap и migration check прошли; 11/11 serial database tests, 2/2 Hikvision unit tests, 3/3 frontend contract tests, Rust format, API check, TypeScript, ESLint и production frontend build прошли. Рабочее дерево чистое. Push, PR, merge и deploy не выполнялись.",
-      next: "Отдельный исполнитель получает pinned commit и обязан получить явное разрешение на push, merge и deploy, подтвердить target и maintenance window, исключить смешанные старый и новый T&A writer, доказать timezone и выполнить real browser L1/L2/L3 fail-closed проверку.",
+      note: "Чистая ветка maryna/skud-ta-for-PR перебазирована на актуальный origin/main и опубликована как draft PR #17. Три логических коммита содержат только базовый SKUD/T&A: policy foundation, fail-closed worker и точную Hikvision attribution. Telegram, ZKTeco, TA-04 и другие новые интеграции не включены.",
+      evidence: "HEAD fd24ae29d6b329c35cd11b122e9bef7969ff12cd. Ветка 0 behind и 3 ahead. После rebase устранён конфликт SQLx migration version без изменения SQL. Два fresh PostgreSQL bootstrap, migration check, schema parity, 11/11 serial database tests, 2/2 Hikvision unit tests, 3/3 frontend contract tests, Rust format, API check, TypeScript, ESLint и production frontend build прошли. GitHub показывает 23 файла, MERGEABLE; CI queued. Merge и deploy не выполнялись.",
+      next: "Проверить CI и выполнить независимый review draft PR #17. Не переводить PR в ready, не merge и не deploy без нового разрешения. Deploy executor обязан подтвердить target и maintenance window, исключить смешанные старый и новый T&A writer, доказать timezone и выполнить real browser L1/L2/L3 fail-closed проверку.",
       startedAt: "2026-07-14",
-      updatedAt: "2026-07-15"
+      updatedAt: "2026-07-15",
+      links: [{ label: "Draft PR #17", href: "https://github.com/extend08/BST-OS/pull/17" }]
     },
     {
       id: "DOCS-03",
