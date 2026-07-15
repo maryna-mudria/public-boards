@@ -932,9 +932,9 @@
       priority: "p0",
       subsystem: "release",
       title: "Подготовить чистый PR только для SKUD/T&A",
-      note: "Draft PR #17 возвращён в работу после независимого review. Исправляются только шесть подтверждённых блокеров базового SKUD/T&A: порядок миграций, фильтр T&A-точек, детерминированный replay поздних событий, граница учетной даты, изоляция битого шаблона и frontend contract внешней связи. Telegram, ZKTeco, TA-04 и другие новые интеграции не входят.",
-      evidence: "Read-only Phase 0 на HEAD fd24ae29d6b329c35cd11b122e9bef7969ff12cd подтвердил причины всех шести дефектов. Ветка чистая, 0 behind и 3 ahead. Большой локальный TA-04 набор не переносится: его фильтр T&A-точек расходится с каноном, а replay и изоляция шаблонов сохраняют найденные ошибки. Новые проверки и код еще не выполнялись.",
-      next: "Добавить узкие падающие тесты, внести минимальные исправления в clean worktree, пройти feature-close gate и повторное review. Не commit, не push, не переводить PR в ready, не merge и не deploy без нового разрешения.",
+      note: "Draft PR #17 остаётся в работе после review. Локально исправлены семь подтверждённых дефектов базового SKUD/T&A: порядок миграций, фильтр T&A-точек, replay поздних событий, граница учётной даты, изоляция битого шаблона, frontend contract внешней связи и повторное открытие уже подтверждённого предупреждения. Telegram, ZKTeco, TA-04 и другие новые интеграции не входят.",
+      evidence: "На clean worktree прошли Rust workspace tests, 76 policy tests, 15 attendance tests и полный набор из 89 database tests на свежей PostgreSQL 15, schema init/migrate checks, 4 frontend contract tests, changed-file lint, production build и production dependency audit. Полный frontend suite на Node 20 сохраняет 21 старый static-contract failure вне SKUD/T&A и остаётся обязательным merge blocker. После fetch ветка стала 2 behind и 3 ahead; два новых PTZ commit не пересекаются по файлам, merge-tree conflict scan чистый. Исправления ещё не закоммичены.",
+      next: "Получить явное разрешение на rebase от свежего origin/main и отдельное разрешение на named-file commit/push. До merge отдельно устранить 21 baseline frontend failure либо получить разрешённое решение политики репозитория, затем дождаться hosted checks и review. Не переводить PR в ready, не merge и не deploy.",
       startedAt: "2026-07-14",
       updatedAt: "2026-07-15",
       links: [{ label: "Draft PR #17", href: "https://github.com/extend08/BST-OS/pull/17" }]
