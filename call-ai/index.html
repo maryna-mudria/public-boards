@@ -111,9 +111,9 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="eyebrow">StT · статус задач</div>
-    <h1>Статусы задач StT</h1>
-    <p class="lede">Статусы на 21 июля 2026 года. В карточках отражены изменения, влияющие на продукт.</p>
+    <div class="eyebrow">Call-AI · доска исполнения</div>
+    <h1>Что осталось довести до конца</h1>
+    <p class="lede">Три потока: хвосты ASR-плана confirmed-findings, офлайн-бэклог по разрыву с ТЗ (эпики A-E) и хвосты платформы. Приоритет, проект и ссылка на PR/задачу/документ - на каждой карточке. Единственный источник правды - эта HTML-страница.</p>
 
     <div class="stats" id="stats"></div>
   </header>
@@ -131,7 +131,7 @@
   <main class="board" id="board"></main>
 
   <footer>
-    Обновлено 21.07.2026, срез на 18:08. Карточки отражают только изменения, влияющие на продукт.
+    Обновлено 2026-07-21. Двигайте карточки правкой массива CARDS в этом файле.
   </footer>
 </div>
 
@@ -143,12 +143,11 @@
     {key:"done",     label:"Выполнено"},
   ];
   const PRIO = [
-    {key:"p0", label:"P0 - срочно"},
-    {key:"p1", label:"P1 - скоро"},
-    {key:"p2", label:"P2 - можно подождать"},
+    {key:"p0", label:"P0 — срочно"},
+    {key:"p1", label:"P1 — скоро"},
+    {key:"p2", label:"P2 — можно подождать"},
   ];
   const PROJ = [
-    {key:"stt",    label:"StT"},
     {key:"asr",    label:"ASR"},
     {key:"tzgap",  label:"ТЗ-gap"},
     {key:"core",   label:"Платформа"},
@@ -159,30 +158,6 @@
   // or user input — do not wire this up to an API/form without adding
   // HTML-escaping first.
   const CARDS = [
-    {id:"STT-STATUS-01", lane:"done", prio:"p1", proj:"stt", statusDate:"2026-07-21",
-     title:"Статусы и результаты оценки звонков",
-     note:"Исправлены ошибки отображения статусов оценки. Обновление опубликовано в рабочей версии и проверено.",
-     doc:"Статус задачи: завершено"},
-    {id:"STT-STATUS-02", lane:"done", prio:"p1", proj:"stt", statusDate:"2026-07-21",
-     title:"Панель показателей",
-     note:"Исправление опубликовано, ручная проверка панели на разных размерах экрана пройдена.",
-     doc:"Статус задачи: завершено"},
-    {id:"STT-STATUS-03", lane:"progress", prio:"p1", proj:"stt", statusDate:"2026-07-21",
-     title:"Показатели для руководителя",
-     note:"Подготовлены показатели, которые рассчитываются из уже доступных данных. Требования к внешним данным выделены отдельно. Следующий шаг: подтвердить сервер, опубликовать изменения и проверить их в рабочей версии. Перед подключением не удалось подтвердить принадлежность сервера.",
-     doc:"Статус задачи: в работе"},
-    {id:"STT-STATUS-04", lane:"done", prio:"p1", proj:"stt", statusDate:"2026-07-21",
-     title:"Стабильность рабочей версии",
-     note:"Удалены неиспользуемые остановленные сервисы, все действующие сервисы проверены и работают штатно.",
-     doc:"Статус задачи: завершено"},
-    {id:"STT-STATUS-05", lane:"progress", prio:"p1", proj:"stt", statusDate:"2026-07-21",
-     title:"Локальная проверка с серверными сервисами распознавания",
-     note:"Локальная версия запущена, зависимости и проверки работоспособности проходят успешно. Следующий шаг: обработать тестовый звонок и проверить результат от начала до конца.",
-     doc:"Статус задачи: в работе"},
-    {id:"STT-STATUS-06", lane:"done", prio:"p1", proj:"stt", statusDate:"2026-07-21",
-     title:"Материалы для клиента по статусу реализации",
-     note:"Подготовлены презентация и таблица статуса, где отдельно показаны готовые функции, задачи с внешними зависимостями и недоступные функции.",
-     doc:"Статус задачи: завершено"},
     {id:"PLAUD-1", lane:"testing", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-13",
      title:"Карта качества: включить автооценку и принять её на реальных звонках",
      note:"Код и экран уже дают AI-итог, итог QA и результаты настроенных AI-правил. Для клиента не подтверждены его правила, веса, пороги, включение на сервере и сверка с QA примерно на 50 звонках. Нельзя считать автооценку принятой до пилота.",
@@ -453,9 +428,9 @@
       ? `<span class="deadline">сделать + оттестировать до ${formatDeadline(c.deadline)}</span>`
       : "";
     // statusDate = when the card last entered its current lane (testing/done).
-    // Backlog cards carry none: there is nothing to date yet.
+    // Backlog cards carry none — there's nothing to date yet.
     const statusDateHtml = c.statusDate
-      ? `<span class="status-date ${c.lane}">${c.lane === "done" ? "завершено" : "в работе с"} ${formatDeadline(c.statusDate)}</span>`
+      ? `<span class="status-date ${c.lane}">${c.lane === "done" ? "виконано" : "у тестуванні з"} ${formatDeadline(c.statusDate)}</span>`
       : "";
     return `
       <div class="card" data-prio="${c.prio}" data-proj="${c.proj}">
