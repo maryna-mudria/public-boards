@@ -782,54 +782,55 @@
 <main class="shell">
   <header class="topbar">
     <div>
-      <p class="eyebrow">BST · статус задач</p>
-      <h1>СКД и учёт рабочего времени</h1>
-      <p class="lede">Статусы задач на 21 июля 2026 года. Здесь отражены только изменения, влияющие на продукт.</p>
+      <p class="eyebrow">BST One / access control migration ledger</p>
+      <h1>СКД + учёт рабочего времени</h1>
+      <p class="lede">Исполнительная доска переноса ACS в BST. Показывает только доказанное состояние кода, проверки, интеграции и живого окружения.</p>
     </div>
-    <aside class="snapshot" aria-label="Снимок статуса задач">
-      <div class="snapshot-state">Есть задачи в работе</div>
+    <aside class="snapshot" aria-label="Снимок ветки и pull request">
+      <div class="snapshot-state">Локальный merge зафиксирован</div>
       <dl>
-        <dt>Дата</dt><dd>21.07.2026</dd>
-        <dt>Срез</dt><dd>18:08</dd>
-        <dt>В работе</dt><dd>1 задача</dd>
-        <dt>Проверка</dt><dd>1 задача</dd>
-        <dt>Блокер</dt><dd>Ожидается обновление безопасности</dd>
+        <dt>Ветка</dt><dd class="branch">maryna/skud-ta</dd>
+        <dt>Merge commit</dt><dd class="branch">6daadf3ea7f5</dd>
+        <dt>PR</dt><dd><a href="https://github.com/extend08/BST-OS/pull/15">#15 · удалённый статус не проверен</a></dd>
+        <dt>Merge</dt><dd>COMMITTED / 6daadf3ea</dd>
+        <dt>Checks</dt><dd>local scoped gate PASS</dd>
+        <dt>Deploy</dt><dd>не выполнялся</dd>
       </dl>
     </aside>
   </header>
 
-  <section class="strategy" aria-label="Текущий фокус">
-    <strong>Текущий фокус</strong>
-    <span>Завершить рассмотрение обновления интерфейса и выполнить итоговую проверку контроля доступа после обновления безопасности.</span>
+  <section class="strategy" aria-label="Принятая стратегия переноса">
+    <strong>Lift pure logic + rewrite glue</strong>
+    <span>Без git subtree и без acs-upstream. Чистые движки живут в bst-policy, интеграция принадлежит BST.</span>
   </section>
 
   <section id="metrics" class="metrics" aria-label="Сводка по статусам"></section>
 
   <section class="focus" aria-labelledby="focus-title">
     <div class="focus-head">
-      <h2 id="focus-title">Ближайшие шаги</h2>
-      <span class="readiness-code">ОТЧЁТ / 2026-07-21</span>
+      <h2 id="focus-title">Ближайшая последовательность</h2>
+      <span class="readiness-code">EXECUTION ORDER / 2026-07-13</span>
     </div>
     <div class="focus-grid">
       <div class="focus-item">
         <span class="focus-num">1</span>
-        <strong>Рассмотреть обновление интерфейса</strong>
-        <span>Провести итоговое рассмотрение подготовленного обновления зависимостей веб-интерфейса.</span>
+        <strong>Согласовать следующий этап</strong>
+        <span>Выбрать отдельной задачей live deploy или следующую готовую карточку SKUD/T&amp;A.</span>
       </div>
       <div class="focus-item">
         <span class="focus-num">2</span>
-        <strong>Включить обновление безопасности</strong>
-        <span>Дождаться включения подготовленного обновления, необходимого для финальной проверки доступа и учёта времени.</span>
+        <strong>Разрешить deploy явно</strong>
+        <span>REL-02 остаётся заблокированной, пока оператор отдельно не назовёт целевое окружение и не разрешит deploy.</span>
       </div>
       <div class="focus-item">
         <span class="focus-num">3</span>
-        <strong>Выполнить итоговую проверку</strong>
-        <span>После включения обновления повторно проверить контроль доступа и учёт рабочего времени.</span>
+        <strong>Собрать живые доказательства</strong>
+        <span>После разрешённого deploy проверить миграцию, workers и tenant isolation на целевой системе.</span>
       </div>
       <div class="focus-item">
         <span class="focus-num">4</span>
-        <strong>Подтвердить готовность к выпуску</strong>
-        <span>После рассмотрения включить обновление интерфейса в ближайший выпуск.</span>
+        <strong>Продолжить выбранную карточку</strong>
+        <span>Перед новым кодом снова перевести выбранную карточку в «В работе» и записать критерии принятия.</span>
       </div>
     </div>
   </section>
@@ -881,13 +882,20 @@
   </section>
 
   <footer class="foot">
-    <span>Статическая доска задач · без внешних подключений</span>
-    <span id="updated-label">Срез: 21.07.2026, 18:08</span>
+    <span>Read-only HTML · no storage · no network runtime</span>
+    <span id="updated-label">Snapshot: 2026-07-13</span>
   </footer>
 </main>
 
 <script>
-  const BOARD_META = { updatedAt: "2026-07-21" };
+  const BOARD_META = {
+    updatedAt: "2026-07-14",
+    branch: "maryna/skud-ta",
+    head: "f3fc4f4597fd58f3680535d2931d62b5ce8a89df",
+    remoteTrackingHead: "fa30a849f136",
+    mergeCommit: "6daadf3ea7f52b436166544aa73ac58f919f4c83",
+    prReference: 15
+  };
 
   const LANES = [
     { key: "backlog", label: "Очередь" },
@@ -905,7 +913,6 @@
   ];
 
   const SUBSYSTEMS = [
-    { key: "bst", label: "BST" },
     { key: "release", label: "Интеграция" },
     { key: "foundation", label: "Фундамент" },
     { key: "ta", label: "T&A" },
@@ -919,27 +926,6 @@
   ];
 
   const CARDS = [
-    {
-      id: "BST-STATUS-01",
-      lane: "testing",
-      priority: "p1",
-      subsystem: "bst",
-      title: "Обновление зависимостей веб-интерфейса",
-      note: "Устранены найденные проблемы в зависимостях интерфейса, все проверки пройдены.",
-      evidence: "Статус задачи: готово к рассмотрению.",
-      next: "Провести итоговое рассмотрение и включить обновление в выпуск.",
-      updatedAt: "2026-07-21"
-    },
-    {
-      id: "BST-STATUS-02",
-      lane: "progress",
-      priority: "p1",
-      subsystem: "bst",
-      title: "Проверка контроля доступа и учёта времени",
-      note: "Повторные проверки успешно пройдены. Следующий шаг: выполнить итоговую проверку после включения обновления зависимостей.",
-      blocker: "Ожидается включение подготовленного обновления безопасности.",
-      updatedAt: "2026-07-21"
-    },
     {
       id: "PR-CLEAN-01",
       lane: "progress",
