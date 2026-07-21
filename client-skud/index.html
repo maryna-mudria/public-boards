@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SKUD Client Execution Board</title>
+  <title>SKUD Client Execution Board</title>
   <style>
     :root {
       color-scheme: light;
@@ -471,16 +471,16 @@
 <body>
   <main class="shell">
     <header class="top">
-      <p class="crumb">BST Client / Mobile</p>
-      <div class="eyebrow">Статус задач</div>
-      <h1>Клиентские и мобильные задачи</h1>
-      <p class="lede">Статусы задач на 21 июля 2026 года. BST Client и Mobile показаны отдельными проектами.</p>
+      <p class="crumb">BST Client / SKUD</p>
+      <div class="eyebrow">Client execution board</div>
+      <h1>SKUD Client Execution Board</h1>
+      <p class="lede">Client-owned work for native Departments and Attendance Warnings screens.</p>
       <div class="meta">
-        <span>Обновлено: <strong>21.07.2026</strong></span>
-        <span>Срез отчёта: <strong>18:08</strong></span>
-        <span>В работе: <strong>2 задачи</strong></span>
+        <span>Branch: <strong>maryna/skud-ta-client</strong></span>
+        <span>Last updated: <strong>2026-07-14</strong></span>
+        <span>Initial state: <strong>implementation not authorized</strong></span>
       </div>
-      <p class="source-link">На доске указаны только изменения, влияющие на продукт.</p>
+      <p class="source-link">Design source: <a href="../../superpowers/specs/2026-07-13-skud-departments-attendance-warnings-native-screens-design.md">SKUD native screens design</a></p>
       <section id="summary" class="summary" aria-label="Card totals"></section>
     </header>
 
@@ -525,62 +525,23 @@
       <h2>Board data is unavailable</h2>
       <p>JavaScript did not finish initializing. Inspect the CARDS array in this file to read the complete board data.</p>
     </section>
-    <footer>Статусы отражают отчёт за 21 июля 2026 года, срез на 18:08.</footer>
+    <footer>Update card state by editing the <code>CARDS</code> array in this file.</footer>
   </main>
 
   <script>
     const STATES = [
-      { key: "backlog", label: "Очередь", description: "Задача ещё не согласована или ожидает предшествующую работу." },
-      { key: "ready", label: "Готово к старту", description: "Задача согласована и готова к началу." },
-      { key: "progress", label: "В работе", description: "Работа начата и выполняется." },
-      { key: "testing", label: "Проверка", description: "Нужны проверка или итоговое рассмотрение." },
-      { key: "blocked", label: "Заблокировано", description: "Указана конкретная зависимость и условие продолжения." },
-      { key: "done", label: "Завершено", description: "Критерии выполнены и подтверждены результатом." }
+      { key: "backlog", label: "Backlog", description: "Not approved, criteria incomplete, or waiting for a predecessor that is not fixture-ready." },
+      { key: "ready", label: "Ready", description: "Approved with explicit criteria and fixture-ready Client predecessors." },
+      { key: "progress", label: "In progress", description: "Owned, started, and actively implemented." },
+      { key: "testing", label: "Testing", description: "Fixture-ready only with own Client evidence complete, every Client dependency fixture-ready, and no other blockers; fixture-only evidence stays labeled, and testing alone never permits dependent Done." },
+      { key: "blocked", label: "Blocked", description: "A concrete blocker and resume condition are recorded." },
+      { key: "done", label: "Done", description: "Every criterion has evidence; every Client dependency is Done; every listed server gate is complete with required live or release evidence; fixture-only evidence cannot satisfy those gates." }
     ];
 
     const PRIORITIES = ["p0", "p1", "p2"];
-    const SUBSYSTEMS = ["BST Client", "Mobile", "foundation", "tenant", "departments", "attendance", "ui", "release"];
+    const SUBSYSTEMS = ["foundation", "tenant", "departments", "attendance", "ui", "release"];
 
     const CARDS = [
-      {
-        id: "BST-CLIENT-01",
-        title: "Подключение к серверу по HTTP в бета-версии",
-        state: "progress",
-        priority: "p1",
-        subsystem: "BST Client",
-        owner: "Команда разработки",
-        dependencies: [],
-        externalDependencies: [],
-        acceptance: [
-          "На телефоне проверена трансляция: видео отображается и корректно возобновляется после возврата в приложение."
-        ],
-        next: "Провести финальную независимую проверку и передать результат.",
-        startedAt: null,
-        updatedAt: "2026-07-21",
-        completedAt: null,
-        evidence: "Статус задачи: в работе.",
-        blocker: null
-      },
-      {
-        id: "MOBILE-01",
-        title: "Просмотр архива в мобильном приложении",
-        state: "progress",
-        priority: "p1",
-        subsystem: "Mobile",
-        owner: "Команда разработки",
-        dependencies: [],
-        externalDependencies: [],
-        acceptance: [
-          "Добавлены выбор времени записи, переход к нужному месту, возврат к прямому эфиру и безопасная обработка ошибок.",
-          "Новая бета-версия собрана и проверена."
-        ],
-        next: "Провести финальную проверку на разрешённом устройстве и независимое рассмотрение.",
-        startedAt: null,
-        updatedAt: "2026-07-21",
-        completedAt: null,
-        evidence: "Статус задачи: в работе. Недоступность устройства означает, что финальная проверка ещё не завершена, а не то, что задача заблокирована.",
-        blocker: null
-      },
       {
         id: "C-SKUD-01",
         title: "Shared admin client foundation",
@@ -820,9 +781,9 @@
     ];
 
     const FILTER_GROUPS = [
-      { key: "state", label: "Статус", values: STATES.map(({ key, label }) => ({ key, label })) },
-      { key: "priority", label: "Приоритет", values: PRIORITIES.map((key) => ({ key, label: key.toUpperCase() })) },
-      { key: "subsystem", label: "Проект", values: SUBSYSTEMS.map((key) => ({ key, label: key })) }
+      { key: "state", label: "State", values: STATES.map(({ key, label }) => ({ key, label })) },
+      { key: "priority", label: "Priority", values: PRIORITIES.map((key) => ({ key, label: key.toUpperCase() })) },
+      { key: "subsystem", label: "Subsystem", values: SUBSYSTEMS.map((key) => ({ key, label: key })) }
     ];
 
     const activeFilters = Object.fromEntries(
@@ -845,15 +806,15 @@
     }
 
     function displayValue(value) {
-      if (Array.isArray(value)) return value.length ? value.join(", ") : "Нет";
-      if (value === null || value === "") return "Нет";
+      if (Array.isArray(value)) return value.length ? value.join(", ") : "None";
+      if (value === null || value === "") return "None";
       return value;
     }
 
     function addDefinition(list, term, value) {
       list.append(createText("dt", term));
       const definition = document.createElement("dd");
-      if (Array.isArray(value) && term === "Критерии") {
+      if (Array.isArray(value) && term === "Acceptance") {
         const items = document.createElement("ul");
         value.forEach((item) => items.append(createText("li", item)));
         definition.append(items);
@@ -919,31 +880,31 @@
 
       const meta = createText(
         "p",
-        "Ответственный: " + displayValue(card.owner) + " | Обновлено: " + displayValue(card.updatedAt),
+        "Owner: " + displayValue(card.owner) + " | Updated: " + displayValue(card.updatedAt),
         "card-meta"
       );
       cardSummary.append(meta);
-      const disclosureLabel = createText("span", "Показать детали", "disclosure-label");
+      const disclosureLabel = createText("span", "Show details", "disclosure-label");
       cardSummary.append(disclosureLabel);
       article.append(cardSummary);
 
       const details = document.createElement("div");
       details.className = "card-details";
       const list = document.createElement("dl");
-      addDefinition(list, "Следующий шаг", card.next);
-      addDefinition(list, "Ответственный", card.owner);
-      addDefinition(list, "Зависимости", card.dependencies);
-      addDefinition(list, "Серверные зависимости", card.externalDependencies);
-      addDefinition(list, "Критерии", card.acceptance);
-      addDefinition(list, "Начато", card.startedAt);
-      addDefinition(list, "Обновлено", card.updatedAt);
-      addDefinition(list, "Завершено", card.completedAt);
-      addDefinition(list, "Результат", card.evidence);
-      addDefinition(list, "Блокер", card.blocker);
+      addDefinition(list, "Next", card.next);
+      addDefinition(list, "Owner", card.owner);
+      addDefinition(list, "Dependencies", card.dependencies);
+      addDefinition(list, "Server gates", card.externalDependencies);
+      addDefinition(list, "Acceptance", card.acceptance);
+      addDefinition(list, "Started", card.startedAt);
+      addDefinition(list, "Updated", card.updatedAt);
+      addDefinition(list, "Completed", card.completedAt);
+      addDefinition(list, "Evidence", card.evidence);
+      addDefinition(list, "Blocker", card.blocker);
       details.append(list);
       article.append(details);
       article.addEventListener("toggle", () => {
-        disclosureLabel.textContent = article.open ? "Скрыть детали" : "Показать детали";
+        disclosureLabel.textContent = article.open ? "Hide details" : "Show details";
       });
       return article;
     }
@@ -966,7 +927,7 @@
       const cards = visibleCards();
       board.replaceChildren();
       empty.classList.toggle("hidden", cards.length !== 0);
-      resultStatus.textContent = "Показано карточек: " + cards.length + " из " + CARDS.length + ".";
+      resultStatus.textContent = "Showing " + cards.length + " of " + CARDS.length + " cards.";
 
       STATES.forEach((state) => {
         const laneCards = cards.filter((card) => card.state === state.key);
