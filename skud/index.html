@@ -927,13 +927,14 @@
 
   const CARDS = [
     {
-      id: "REVIEW-02",
-      lane: "progress",
+      id: "REVIEW-03",
+      lane: "done",
       priority: "p0",
       subsystem: "release",
       title: "Повторное ревью актуальных SKUD/T&A PR",
-      note: "Read-only ревью текущих запросов на слияние: pinned head, diff, canon ownership, review state, CI и пропорциональные проверки. Merge, push и deploy не выполняются.",
-      next: "Определить точный набор актуальных PR, проверить каждый по docs/canon/code_review.md и выдать отдельный merge-readiness verdict.",
+      note: "Read-only ревью PR #15, #21 и #23 завершено по pinned head против актуального origin/main 72f401e4. Ни один PR нельзя сливать в текущем состоянии.",
+      evidence: "#15: 15 merge-конфликтов, нет CI/review, diff hygiene fail, часть объёма уже перенесена в main. #21: конфликт в main.rs и красный Frontend CI. #23: merge-tree clean и исторический CI green, но повторный npm audit 2026-07-23 нашёл 3 high vulnerabilities (Next.js, sharp, fast-uri).",
+      next: "Сначала обновить и повторно проверить #23; затем перебазировать и перепроверить #21; #15 не сливать целиком, а закрыть или разложить остаток на новые узкие ветки от main.",
       startedAt: "2026-07-23",
       updatedAt: "2026-07-23"
     },
