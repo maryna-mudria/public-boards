@@ -889,7 +889,7 @@
 
 <script>
   const BOARD_META = {
-    updatedAt: "2026-07-14",
+    updatedAt: "2026-07-23",
     branch: "maryna/skud-ta",
     head: "f3fc4f4597fd58f3680535d2931d62b5ce8a89df",
     remoteTrackingHead: "fa30a849f136",
@@ -928,15 +928,20 @@
   const CARDS = [
     {
       id: "REVIEW-03",
-      lane: "done",
+      lane: "progress",
       priority: "p0",
       subsystem: "release",
-      title: "Повторное ревью актуальных SKUD/T&A PR",
-      note: "Read-only ревью PR #15, #21 и #23 завершено по pinned head против актуального origin/main 72f401e4. Ни один PR нельзя сливать в текущем состоянии.",
-      evidence: "#15: 15 merge-конфликтов, нет CI/review, diff hygiene fail, часть объёма уже перенесена в main. #21: конфликт в main.rs и красный Frontend CI. #23: merge-tree clean и исторический CI green, но повторный npm audit 2026-07-23 нашёл 3 high vulnerabilities (Next.js, sharp, fast-uri).",
-      next: "Сначала обновить и повторно проверить #23; затем перебазировать и перепроверить #21; #15 не сливать целиком, а закрыть или разложить остаток на новые узкие ветки от main.",
+      title: "Очистить и подготовить актуальные SKUD/T&A PR",
+      note: "Phase 0 одобрен 2026-07-23. PR #21 закрывается как устаревший без удаления ветки; PR #23 сохраняется и повторно проверяется по точному head; PR #15 готовится только в изолированной копии без commit, push, merge или deploy.",
+      evidence: "Оба патча PR #21 уже присутствуют в main как patch-equivalent commits 5e9da82b88 и 0e05174900. PR #23 mergeable и имеет зелёный исторический CI, но локальный npm audit 2026-07-23 ранее нашёл 3 high vulnerabilities, поэтому merge-ready статус требует повторного доказательства. PR #15 содержит уникальный SKUD/T&A объём, сильно отстал от main и не может безопасно готовиться в грязной основной рабочей копии.",
+      next: "Закрыть PR #21 с доказательством эквивалентных коммитов; повторно проверить точный head PR #23; создать изолированную копию от локального committed HEAD PR #15, интегрировать актуальный main без commit и пройти проверки.",
       startedAt: "2026-07-23",
-      updatedAt: "2026-07-23"
+      updatedAt: "2026-07-23",
+      links: [
+        { label: "PR #15", href: "https://github.com/extend08/BST-OS/pull/15" },
+        { label: "PR #21", href: "https://github.com/extend08/BST-OS/pull/21" },
+        { label: "PR #23", href: "https://github.com/extend08/BST-OS/pull/23" }
+      ]
     },
     {
       id: "PR-CLEAN-01",
