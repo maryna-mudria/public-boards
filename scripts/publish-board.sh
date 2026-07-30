@@ -11,8 +11,14 @@ SOURCE_PATH=$1
 TARGET_PATH=$2
 SOURCE_REPOSITORY=$3
 SOURCE_SHA=$4
+PUBLISH_TARGET_REF=${PUBLISH_TARGET_REF:-main}
 SCRIPT_DIRECTORY=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 TEMPORARY_TARGET=""
+
+if ! git check-ref-format --branch "$PUBLISH_TARGET_REF" >/dev/null 2>&1; then
+  echo "error: invalid PUBLISH_TARGET_REF: $PUBLISH_TARGET_REF" >&2
+  exit 2
+fi
 
 cleanup() {
   if [[ -n "$TEMPORARY_TARGET" ]]; then
@@ -47,7 +53,14 @@ git commit --only \
   -- "$TARGET_PATH"
 
 for attempt in 1 2 3 4 5; do
-  if ! git pull --rebase origin main; then
+  PUBLISH_BASE_REF=main
+  if [[ "$PUBLISH_TARGET_REF" != "main" ]] &&
+    git ls-remote --exit-code --heads origin \
+      "refs/heads/$PUBLISH_TARGET_REF" >/dev/null 2>&1; then
+    PUBLISH_BASE_REF=$PUBLISH_TARGET_REF
+  fi
+
+  if ! git pull --rebase origin "$PUBLISH_BASE_REF"; then
     abort_rebase
     if [[ $attempt -eq 5 ]]; then
       echo "error: unable to rebase publication after five attempts" >&2
@@ -56,7 +69,7 @@ for attempt in 1 2 3 4 5; do
     continue
   fi
 
-  if git push origin HEAD:main; then
+  if git push origin "HEAD:refs/heads/$PUBLISH_TARGET_REF"; then
     exit 0
   fi
 
