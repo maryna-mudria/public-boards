@@ -10,8 +10,8 @@
   :root{
     --paper:#EEF0F1; --panel:#F7F8F8; --ink:#161A1D; --muted:#5B676B; --faint:#8A959A;
     --rule:#D6DADC; --accent:#0E7C86;
-    --backlog:#64748B; --progress:#2563A8; --testing:#B7791F; --done:#2E7D46;
-    --backlog-bg:#E9ECEF; --progress-bg:#E3ECF6; --testing-bg:#F6ECD9; --done-bg:#E4F0E8;
+    --backlog:#64748B; --progress:#2563A8; --blocked:#A64257; --testing:#B7791F; --done:#2E7D46;
+    --backlog-bg:#E9ECEF; --progress-bg:#E3ECF6; --blocked-bg:#F8E5EA; --testing-bg:#F6ECD9; --done-bg:#E4F0E8;
     --p0:#B04A4A; --p0-bg:#F3E2E2; --p1:#B7791F; --p1-bg:#F6ECD9; --p2:#5B676B; --p2-bg:#E9ECEF;
   }
   *{box-sizing:border-box;}
@@ -36,7 +36,7 @@
   h1{ font-size:clamp(1.5rem,1.1rem+1.8vw,2.1rem); margin:.5rem 0 .3rem; line-height:1.1; }
   .lede{ color:var(--muted); max-width:46rem; margin:0; font-size:1.02rem; }
 
-  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; margin:1.4rem 0 .3rem; }
+  .stats{ display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; margin:1.4rem 0 .3rem; }
   .stat{ background:var(--panel); border:1px solid var(--rule); border-radius:3px; padding:.7rem .6rem;
     display:flex; flex-direction:column; gap:.15rem; }
   .stat .n{ font-family:"Cascadia Code",monospace; font-size:1.5rem; font-weight:600;
@@ -44,6 +44,7 @@
   .stat .l{ font-size:.72rem; color:var(--muted); line-height:1.15; }
   .stat.backlog{border-top:3px solid var(--backlog);} .stat.backlog .n{color:var(--backlog);}
   .stat.progress{border-top:3px solid var(--progress);} .stat.progress .n{color:var(--progress);}
+  .stat.blocked{border-top:3px solid var(--blocked);} .stat.blocked .n{color:var(--blocked);}
   .stat.testing{border-top:3px solid var(--testing);} .stat.testing .n{color:var(--testing);}
   .stat.done{border-top:3px solid var(--done);} .stat.done .n{color:var(--done);}
 
@@ -66,6 +67,7 @@
   .col-head .cc{ margin-left:auto; font-variant-numeric:tabular-nums; opacity:.8; }
   .col-head.backlog{background:var(--backlog-bg); color:var(--backlog);}
   .col-head.progress{background:var(--progress-bg); color:var(--progress);}
+  .col-head.blocked{background:var(--blocked-bg); color:var(--blocked);}
   .col-head.testing{background:var(--testing-bg); color:var(--testing);}
   .col-head.done{background:var(--done-bg); color:var(--done);}
 
@@ -86,9 +88,11 @@
   .status-date{ font-family:"Cascadia Code",monospace; font-size:.7rem; border-radius:2px; padding:.05rem .4rem;
     align-self:flex-start; font-variant-numeric:tabular-nums; }
   .status-date.testing{ color:var(--testing); background:var(--testing-bg); }
+  .status-date.blocked{ color:var(--blocked); background:var(--blocked-bg); }
   .status-date.done{ color:var(--done); background:var(--done-bg); }
   .card h3{ font-size:.92rem; margin:0; line-height:1.28; font-weight:600; }
   .note{ font-size:.83rem; color:var(--muted); margin:0; }
+  .note.blocker{ color:var(--blocked); border-left:2px solid var(--blocked); padding-left:.45rem; }
   .card-foot{ display:flex; align-items:center; gap:.5rem; margin-top:.1rem; padding-top:.4rem;
     border-top:1px dashed var(--rule); }
   .pr-link{ font-family:"Cascadia Code",monospace; font-size:.72rem; color:var(--accent); text-decoration:none; }
@@ -126,22 +130,24 @@
     <span class="lbl">Проект</span>
     <div id="proj-filter" style="display:contents"></div>
   </div>
-  <p class="hint">Клик по приоритету/проекту оставляет только такие карточки во всех столбцах.</p>
+  <p class="hint">Клик по приоритету/проекту оставляет только такие карточки во всех столбцах. В «Блокерах» только задачи, которым для продолжения нужны внешний вход или решение.</p>
 
   <main class="board" id="board"></main>
 
   <footer>
-    Обновлено 2026-08-10. Двигайте карточки правкой массива CARDS в этом файле.
+    Обновлено 2026-08-11. Двигайте карточки правкой массива CARDS в этом файле.
   </footer>
 </div>
 
 <script>
   const LANES = [
-    {key:"backlog",  label:"Бэклог"},
-    {key:"progress", label:"В работе"},
-    {key:"testing",  label:"На тестировании"},
-    {key:"done",     label:"Выполнено"},
+    {key:"backlog",  label:"Бэклог",          statusLabel:"в бэклоге с"},
+    {key:"progress", label:"В работе",        statusLabel:"в работе с"},
+    {key:"blocked",  label:"Блокеры",         statusLabel:"заблокировано с"},
+    {key:"testing",  label:"На тестировании", statusLabel:"у тестуванні з"},
+    {key:"done",     label:"Выполнено",       statusLabel:"виконано"},
   ];
+  const LANE_BY_KEY = Object.fromEntries(LANES.map(lane => [lane.key, lane]));
   const PRIO = [
     {key:"p0", label:"P0 — срочно"},
     {key:"p1", label:"P1 — скоро"},
@@ -170,9 +176,9 @@
      title:"Карта качества: включить автооценку и принять её на реальных звонках",
      note:"Код и экран уже дают AI-итог, итог QA и результаты настроенных AI-правил. Для клиента не подтверждены его правила, веса, пороги, включение на сервере и сверка с QA примерно на 50 звонках. Нельзя считать автооценку принятой до пилота.",
      pr:null},
-    {id:"PLAUD-2", lane:"testing", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-15",
+    {id:"PLAUD-2", lane:"blocked", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-08-11",
      title:"Отчёт по операторам: все AI-оценки за период",
-     note:"Наша часть объединена в main через #1209: отчёт считает все доступные AI-оценки, показывает имя оператора и число звонков, поддерживает сегодня/неделю/месяц, входящую/исходящую линии и неизвестного оператора. Изоляция действует и для выбранной организации супер-администратора, включая детализацию правил. На чистых PostgreSQL и Redis прошли 2 384 API-проверки и 3 902 проверки worker, интеграций и runbook; фронтенд дал 820 тестов. Пользователь пока не видит результат: до разрешённого deploy и live-проверки карточка остаётся на тестировании. Внешний блокер EXT-07: известен main commit a7a855b2, но не подтверждены целевой live-хост, окно релиза и оператор. EXT-02 нужен для живой проверки сопоставления операторов, но не блокирует код.",
+     note:"Блокер EXT-07: не подтверждены целевой live-хост, окно релиза и оператор для выкладки и живой проверки. Для разблокировки: владелец выпуска должен подтвердить эти три параметра. Код объединён в main через #1209; EXT-02 нужен только для живой проверки сопоставления операторов и не блокирует код.",
      pr:"#1209"},
     {id:"PLAUD-3", lane:"done", prio:"p1", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-20",
      title:"Очередь проблемных звонков: низкие AI-оценки и негатив",
@@ -206,9 +212,9 @@
      title:"Asterisk клиента: подключение и проверка данных интеграции",
      note:"Asterisk-адаптер есть, а ручная загрузка не блокирует пилот. Нужны доступ Андрея, тестовые записи, проверка времени, очереди и оператора. Раздельные дорожки клиента и оператора - технический риск интеграции, а не отдельное требование встречи. Подключение целевой организации не подтверждено.",
      pr:null},
-    {id:"PLAUD-8", lane:"testing", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-15",
+    {id:"PLAUD-8", lane:"blocked", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-08-11",
      title:"Дата звонка в отчёте: брать started_at, а не дату загрузки",
-     note:"Наша часть готова в PR #1205: проверенный deep-plan реализован для полного и точечного обновления витрин, live-метрик, fallback без started_at и импорта метаданных; полный локальный гейт пройден. Не готово для пользователя: выпуск и проверка отложенной загрузки на живом примере. Внешний блокер EXT-07 - не подтверждены целевой live-хост, точный commit, оператор и окно релиза. До выпуска и live-проверки оставляем в На тестуванні.",
+     note:"Блокер EXT-07: не подтверждены целевой live-хост, точная ревизия, оператор и окно релиза. Для разблокировки: владелец выпуска должен подтвердить все четыре параметра. Код готов в PR #1205, но выпуск и проверка отложенной загрузки ждут живого примера.",
      pr:{num:1205, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1205"}},
     {id:"PLAUD-7", lane:"testing", prio:"p1", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-13",
      title:"Апелляция оператора: проверить доступ к своим звонкам и комментариям QA",
@@ -238,21 +244,21 @@
      title:"Binotel: причины потери звонка",
      note:"21.07 реализована воспроизводимая классификация только по подтверждённым фактам провайдера: нет ответа, линия занята и техническая ошибка. Нерабочее время не вычисляется без подтверждённого расписания и не выдаётся за факт.",
      pr:{num:1265, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1265"}},
-    {id:"BINOTEL-7", lane:"backlog", prio:"p1", proj:"tzgap", statusDate:"2026-07-21",
+    {id:"BINOTEL-7", lane:"blocked", prio:"p1", proj:"tzgap", statusDate:"2026-08-11",
      title:"Binotel: история статусов сотрудников",
-     note:"21.07 в опубликованном и наблюдаемом API не подтверждён endpoint или поток событий статусов сотрудников. Сбор не реализован, экран честно показывает возможность как недоступную. Для продолжения нужен документированный метод и образец ответа медицинского аккаунта; историческое восстановление до включения сбора невозможно.",
+     note:"Блокер: публичные материалы Binotel направляют документацию REST, Webhook и WebSocket в техподдержку, а документированный метод и обезличенный образец ответа аккаунта не предоставлены. Для разблокировки: получить оба артефакта от провайдера или владельца аккаунта. Сбор не реализован, а историческое восстановление до его включения невозможно.",
      pr:{num:1265, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1265"}},
     {id:"BINOTEL-8", lane:"testing", prio:"p1", proj:"tzgap", statusDate:"2026-07-21",
      title:"Binotel: оценки качества разговоров",
      note:"21.07 отчёт использует только локальные человеческие и локальные автоматические оценки, показывает размер выборки, среднее и динамику по датам, а также покрытие аудиозаписями и статусами записи. Аудио и текст не отправляются во внешние службы.",
      pr:{num:1265, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1265"}},
-    {id:"BINOTEL-9", lane:"backlog", prio:"p1", proj:"tzgap", statusDate:"2026-07-21",
+    {id:"BINOTEL-9", lane:"blocked", prio:"p1", proj:"tzgap", statusDate:"2026-08-11",
      title:"Binotel: атрибуция Call Tracking",
-     note:"21.07 в доступных payload и контрактах не подтверждены поля источника, кампании, ключевого слова и страницы. Атрибуция не выдумывается и показана как недоступная. Для продолжения нужен включённый Call Tracking и обезличенный образец документированного ответа медицинского аккаунта.",
+     note:"Блокер: Call Tracking не включён, а доступные контракты не подтверждают поля источника, кампании, ключевого слова и страницы. Для разблокировки: включить Call Tracking и передать обезличенный документированный ответ. Атрибуция показана как недоступная.",
      pr:{num:1265, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1265"}},
-    {id:"BINOTEL-10", lane:"backlog", prio:"p2", proj:"tzgap", statusDate:"2026-07-21",
+    {id:"BINOTEL-10", lane:"blocked", prio:"p2", proj:"tzgap", statusDate:"2026-08-11",
      title:"Binotel: рекламные расходы и конверсия",
-     note:"21.07 одних данных Binotel недостаточно для расходов и денежной конверсии, а разрешённые подключения рекламных кабинетов и учётные данные не предоставлены. Возможность показана как недоступная, без ложных нулей. Для продолжения нужны отдельные согласованные коннекторы, валюта и формула.",
+     note:"Блокер: не согласованы рекламные коннекторы, доступы, валюта и формула денежной конверсии. Для разблокировки: владелец должен согласовать эти четыре входа. Возможность показана как недоступная, без ложных нулей.",
      pr:{num:1265, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1265"}},
     {id:"BINOTEL-11", lane:"testing", prio:"p0", proj:"tzgap", statusDate:"2026-07-22",
      title:"Binotel: пользовательский экран аналитики",
@@ -266,9 +272,9 @@
      title:"Binotel: время ожидания в общей таблице звонков",
      note:"10.08 полное ревью PR #1333 завершено: подтверждённое замечание о сроке удаления миграции v1 исправлено. В общей таблице добавлена видимая по умолчанию колонка ожидания с форматом минуты:секунды и прочерком при отсутствии данных. Статический анализ, 1111 интерфейсных тестов и production-сборка пройдены. Черновой запрос ожидает независимого ревью и доставки.",
      pr:{num:1333, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1333"}},
-    {id:"PLAUD-9", lane:"progress", prio:"p0", proj:"tzgap", deadline:"2026-07-14", statusDate:"2026-07-19",
+    {id:"PLAUD-9", lane:"blocked", prio:"p0", proj:"tzgap", deadline:"2026-07-14", statusDate:"2026-08-11",
      title:"Внешний блокер: получить данные клиента для пилота",
-     note:"Наша часть подготовлена в #1196: один полный текст запроса, реестр 11 блокеров, чек-лист пилота и шаблон релиза. Проверка репозитория и связанных записей GitHub на 19.07 не нашла ссылки на одобренный канал или подтверждения отправки, поэтому статус остаётся UNKNOWN. Подготовленный файл не является отправкой, а произвольная внешняя отправка без одобренного канала не выполнялась. EXT-01 - EXT-06 просрочены и остаются внешними блокерами. Владелец поставки должен указать одобренный канал и приложить подтверждение отправки или полученные входные данные.",
+     note:"Блокер: нет одобренного канала передачи, подтверждения отправки и входных данных клиента для пилота. Для разблокировки: владелец поставки должен указать канал и приложить подтверждение отправки либо полученные данные. EXT-01 - EXT-06 остаются внешними блокерами; шаблоны запроса, чек-лист и реестр подготовлены в #1196.",
      pr:{num:1196, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1196"}},
     {id:"CORE-1", lane:"testing", prio:"p0", proj:"core", statusDate:"2026-05-20",
      title:"Insights two-pass: перевести INSIGHTS_USE_TWO_PASS в true",
@@ -294,13 +300,16 @@
      title:"Catalog-guard: перевод enforce по организациям",
      note:"Держится в shadow (enforce=false) из-за риска недозрелого каталога у теста с заказчиком. Решение по каждой org — после итогов теста.",
      doc:"docs/planning/2026-06-18-pre-test-freeze-readiness.md"},
-    {id:"CORE-4", lane:"backlog", prio:"p1", proj:"core",
+    {id:"CORE-4", lane:"progress", prio:"p1", proj:"core", statusDate:"2026-08-11",
      title:"Проверить, живы ли ещё issue #474 (upload ≥10MB → 500) и #416 (/me → organization_id: null)",
-     note:"Оба отмечены «OPEN» в последнем известном статусе, но с 2026-06-19 никто не подтверждал и не чинил ни то, ни другое — неизвестно, актуальны ли они ещё на сегодняшнем коде.",
+     note:"Проверено: #416 исправлен в общем ответе профиля, добавлены регрессии для GET, PATCH и /auth/me. Контракт MeRead синхронизирован точечно: organization_id обязателен, hidden_nav_items объявлен в клиенте; документация интеграции фиксирует обязательность ID в ответах профиля и описывает допустимость пустого значения только для отдельных read-схем ради совместимости. #474 не воспроизводится в API: синтетический WAV больше 10 MiB принят. Новый изолированный Docker-тест запускает реальный Caddy с текущим Caddyfile, отправляет multipart WAV больше 10 MiB и подтверждает, что /api отрезается и весь запрос идёт прямо в API, а не в Next.js. Он включён отдельным обязательным запуском в CI и его локальном зеркале, не активируя внешний Llama smoke-test; без testcontainers корректно пропускается. Это не подтверждает конфигурацию уже развернутой среды: после слияния нужен отдельный безопасный smoke-test ingress там. До ревью, слияния и выкладки пользователям результат недоступен.",
      refs:[
        {label:"Issue #474", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/issues/474"},
        {label:"Issue #416", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/issues/416"},
      ]},
+    {id:"CORE-23", lane:"backlog", prio:"p2", proj:"core", statusDate:"2026-08-11",
+     title:"Синхронизировать полный сгенерированный OpenAPI-клиент фронтенда",
+     note:"Точечная правка профиля устраняет текущий контрактный дрейф, но полная генерация schema.gen.ts по docs/openapi/main-snapshot.json меняет ещё 2 061 строку и удаляет 208 вне этой карточки. Нужен отдельный проверяемый PR: установить источник расхождения snapshot и генератора, синхронизировать клиент и добавить проверку отсутствия дрейфа."},
     {id:"PBX-1", lane:"backlog", prio:"p1", proj:"core",
      title:"AI Coach: собственная полнофункциональная телефония на Asterisk",
      note:"Этап: утверждены план реализации и промт на выполнение. Промт запускает разработку полными проверяемыми пакетами, запрещает повторно открывать согласованные продуктовые решения и не разрешает менять сервер, маршруты операторов или аварийную переадресацию без отдельного согласования. Телефония является встроенным модулем AI Coach, Asterisk 22 LTS - её техническое ядро. Сотрудники разговаривают через отдельные SIP-клиенты; внешние номера Vodafone, lifecell и Kyivstar подключаются отдельно без переноса номеров, а маршрут определяется вызываемым номером. В P1 входят внутренние добавочные, реальные входящие и исходящие звонки, очереди, группы, IVR, расписания, правила исходящей подмены, удержание, парковка, голосовая почта или пропущенный звонок, слепые и консультативные переводы, история, права, наблюдаемость и ручное удаление. Каждый отвеченный звонок получает проверенную стереозапись и проходит все включённые у организации модули аналитики AI Coach по обычному постобрабатывающему пути. Данные хранятся до явного удаления во всех включённых хранилищах. При недоступности телефонного контура каждый включённый номер автоматически переводится на аварийное направление, заданное организацией; сбой аналитики звонок не прерывает. Нет произвольного продуктового лимита на число параллельных звонков: инфраструктура масштабируется по воспроизводимой нагрузочной проверке. Готовность: проверены реальные маршруты всех трёх операторов, маршрутизация по вызываемому номеру, весь согласованный набор функций, роли стереоканалов, отсутствие потерь и логических дублей, ручное удаление, аварийная переадресация и восстановление очереди после 60 минут недоступности постобработки. PLAUD-6 остаётся отдельной проверкой доступа и данных конкретного клиента.",
@@ -336,9 +345,9 @@
        {label:"PR #1269", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1269"},
      ],
      doc:"docs/user-guides/rule-creation-guide-uk.md"},
-    {id:"CORE-11", lane:"testing", prio:"p1", proj:"core", statusDate:"2026-07-30",
+    {id:"CORE-11", lane:"blocked", prio:"p1", proj:"core", statusDate:"2026-08-11",
      title:"Зависимости: слить 9 обновлений и закрыть npm audit",
-     note:"Локальная приёмка завершена 23.07: Next.js 16.2.11 и Sharp 0.35.3 устранили 2 новые high-находки; npm audit показывает 0 уязвимостей, полный frontend gate, image smoke tests и локальный CI-эквивалент с 6673 успешными тестами прошли. Исправление слито в main через PR #1276. Связанный хвост миграции Next.js закрыт 30.07 в PR #1292: deprecated middleware entry point заменён на proxy с сохранением CSP; локально прошли 1097 frontend-тестов, lint и production build. Карточка остаётся в тестировании: автоматическое staging-развёртывание ещё не подтверждено из-за блокировки hosted CI по биллингу; production rollout требует отдельного подтверждения владельца.",
+     note:"Блокер: автоматическое развёртывание на стенд остановлено из-за биллинга hosted CI, а выпуск в рабочую среду ждёт отдельного подтверждения владельца. Для разблокировки: восстановить возможность развёртывания и подтвердить выпуск. Локальная приёмка завершена, изменения объединены в main через #1276 и #1292.",
      refs:[
        {label:"PR #1276", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1276"},
        {label:"Proxy migration: PR #1292", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1292"},
@@ -379,9 +388,9 @@
      title:"Epic A: телефонна операційна аналітика (SL / LCR / Availability)",
      note:"20.07: изменения #1225, #1242 и #1247 развёрнуты и напрямую проверены на рабочем сервере. На широком, планшетном и узком экране видны полные названия всех 10 метрик, плитки имеют одинаковую высоту, периоды одинаковы по ширине, меняются независимо и сохраняются между плитками и таблицей. Цвета и графики различимы, узкая таблица читается с внутренней прокруткой, названия в настройках не содержат суффиксов периода, идентификаторы метрик сохранены. Epic A завершён.",
      pr:{num:1247, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1247"}},
-    {id:"TZ-D", lane:"testing", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-15",
+    {id:"TZ-D", lane:"blocked", prio:"p0", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-08-11",
      title:"Epic D: 6 категорій оцінки дзвінка як іменовані етапи",
-     note:"Передача на релиз оформлена в #1198. Основа #1162 и настройка видимости #1171 смержены; 49 связанных backend-тестов на свежей базе и 35 frontend-тестов прошли. Наша готовность ограничена: BOOKING_PROPOSAL, OBJECTION_HANDLING и BOOKING_CONFIRMED автоматически подготовлены только для medical_clinic; другому rulebook нужна отдельная согласованная доработка. Внешний EXT-07: живой сервер, точный коммит, target rulebook, backfill, флаг видимости, окно и полномочия оператора UNKNOWN. Внешний EXT-11: нет подтверждённых QA owner и разрешённой выборки звонков для проверки сигналов. Развёртывание и live-write не выполнялись; карточка остаётся на тестировании.",
+     note:"Блокеры EXT-07 и EXT-11: не подтверждены живой сервер, точная ревизия, целевой rulebook, backfill, флаг видимости, окно и полномочия оператора; также нет QA-владельца и разрешённой выборки звонков. Для разблокировки: согласовать параметры выпуска, QA-владельца и выборку. Развёртывание и запись в живой среде не выполнялись.",
      pr:{num:1198, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1198"}},
     {id:"TZ-B", lane:"backlog", prio:"p1", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-15",
      title:"Epic B: конверсія в запис (%) + «упущені можливості»",
@@ -403,9 +412,9 @@
      title:"Интерфейс: показать версию приложения",
      note:"31.07: выполнено. PR #1293 смержен в main после ревью, а пользовательская версия выпущена и доступна в интерфейсе. На сервере подтверждены чистая ветка main, работающий web-контейнер и точная ревизия 163f2ee3 в скомпилированном frontend-артефакте; публичная страница входа доступна. Компактная версия показывает восемь символов, полная доступна в единственной подсказке при наведении и с клавиатуры. После выпуска на точной серверной ревизии повторно прошли 6 целевых тестов, typecheck и targeted ESLint. Авторизованная визуальная проверка боковой панели не повторялась из-за отсутствия сессии в тестовом браузере; соответствие запущенной сборки и контракта компонента подтверждено. Hosted GitHub Actions не запустились из-за инфраструктурного ограничения: задания не получили runner и не выполнили ни одного шага, поэтому применён успешный локальный CI-equivalent.",
      pr:{num:1293, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1293"}},
-    {id:"TZ-C", lane:"progress", prio:"p2", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-07-19",
+    {id:"TZ-C", lane:"blocked", prio:"p2", proj:"tzgap", deadline:"2026-07-21", statusDate:"2026-08-11",
      title:"Epic C: тип клієнта - первинний / повторний / сумнівний",
-     note:"Базовая реализация #1170 и технические хвосты #1236 смержены. AI-путь теперь нормализует customer_type к закрытому набору, а primary/repeat сравнивает фактическое время звонка с безопасным fallback. Полный локальный гейт прошёл: 3976 проверок успешно, 15 пропущено. Карточка остаётся в работе: более новый выпуск и live-поведение не подтверждены из-за недоступности сервера, а EXT-10 всё ещё требует утверждённых владельцем примеров и контрпримеров questionable.",
+     note:"Блокер EXT-10: сервер недоступен для живой проверки, а владелец не утвердил примеры и контрпримеры для questionable. Для разблокировки: восстановить доступ к серверу и согласовать примеры. Базовая реализация #1170 и технические хвосты #1236 объединены.",
      refs:[
        {label:"PR #1170", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1170"},
        {label:"PR #1236", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1236"},
@@ -415,21 +424,21 @@
      title:"Opener_templates: экран администрирования шаблонов",
      note:"CRUD-API (GET/PUT /admin/opener-template) + админ-экран (keyword, фразы, domain_word, режим shadow/enforce с предупреждением) + i18n uk/ru/en + врезка в сайдбар. Смержено (#1156) и задеплоено на прод (overlay-пересборка api+web): роут отвечает 401, страница 200. Проверено уровнем CI: бэкенд 31 pytest, фронт 26 vitest, tsc/ruff/mypy/eslint чисто.",
      pr:{num:1156, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1156"}},
-    {id:"BL-2", lane:"backlog", prio:"p1", proj:"asr",
+    {id:"BL-2", lane:"blocked", prio:"p1", proj:"asr", statusDate:"2026-08-11",
      title:"Бюджет на расшифровку 27 отобранных звонков (R4-H7)",
-     note:"Технический отбор готов: 27 звонков нужных типов (спорный язык, низкая уверенность). Разблокируется решением о бюджете на расшифровку.",
+     note:"Блокер: не принято решение о бюджете на расшифровку 27 отобранных звонков. Для разблокировки: утвердить бюджет. Технический отбор звонков со спорным языком или низкой уверенностью готов.",
      pr:null},
     {id:"BL-3", lane:"done", prio:"p2", proj:"asr", statusDate:"2026-07-07",
      title:"Калибровочная кривая порога уверенности (TQ-11)",
      note:"Построена строгая кривая на 46 gold-звонках (сегментная + пословная калибровка, precision/recall sweep). F1-оптимумы: -0.35 (сегмент) и 0.75 (слово); -0.25 подтверждён как пере-триггер. Прямой потребитель порога (Stage-4) убран ранее — кривая остаётся переиспользуемой основой для будущих механизмов.",
      pr:{num:1150, url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1150"}},
-    {id:"BL-4", lane:"backlog", prio:"p0", proj:"asr",
+    {id:"BL-4", lane:"blocked", prio:"p0", proj:"asr", statusDate:"2026-08-11",
      title:"Полное дообучение модели под телефонный звук uk/ru (T17)",
-     note:"Самый перспективный и самый дорогой путь. Нужно одобрение аренды GPU + сессия дообучения.",
+     note:"Блокер: не одобрены аренда графического процессора и сессия дообучения. Для разблокировки: утвердить ресурсы и бюджет на этот этап.",
      pr:null},
-    {id:"BL-5", lane:"backlog", prio:"p2", proj:"asr",
+    {id:"BL-5", lane:"blocked", prio:"p2", proj:"asr", statusDate:"2026-08-11",
      title:"Сравнение с внешними коммерческими ASR-сервисами (R4-H9)",
-     note:"Ждёт решения о выделении $1-5 на пробные ключи доступа к платным сервисам.",
+     note:"Блокер: не принято решение о бюджете на пробные ключи доступа к платным сервисам. Для разблокировки: утвердить 1-5 долларов на проверку.",
      pr:null},
 
     {id:"TEST-1", lane:"testing", prio:"p1", proj:"asr", statusDate:"2026-07-06",
@@ -525,11 +534,11 @@
     const deadlineHtml = c.deadline
       ? `<span class="deadline">сделать + оттестировать до ${formatDeadline(c.deadline)}</span>`
       : "";
-    // statusDate = when the card last entered its current lane (testing/done).
-    // Backlog cards carry none — there's nothing to date yet.
+    // statusDate = when the card last entered its current lane.
     const statusDateHtml = c.statusDate
-      ? `<span class="status-date ${c.lane}">${c.lane === "done" ? "виконано" : "у тестуванні з"} ${formatDeadline(c.statusDate)}</span>`
+      ? `<span class="status-date ${c.lane}">${LANE_BY_KEY[c.lane].statusLabel} ${formatDeadline(c.statusDate)}</span>`
       : "";
+    const noteClass = c.lane === "blocked" ? "note blocker" : "note";
     return `
       <div class="card" data-prio="${c.prio}" data-proj="${c.proj}">
         <div class="card-top">
@@ -540,7 +549,7 @@
         <h3>${c.title}</h3>
         ${deadlineHtml}
         ${statusDateHtml}
-        <p class="note">${c.note}</p>
+        <p class="${noteClass}">${c.note}</p>
         <div class="card-foot">${foot}</div>
       </div>`;
   }
