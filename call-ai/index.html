@@ -1440,9 +1440,9 @@
      refs:[
        {label:"PR #1882 (PBX-1 D1)", url:"https://github.com/maryna-mudria/call_ai_mvp_offline/pull/1882"},
      ]},
-    {id:"PBX-11", lane:"backlog", prio:"p2", proj:"core", statusDate:"2026-09-28",
+    {id:"PBX-11", lane:"progress", prio:"p2", proj:"core", statusDate:"2026-09-28",
      title:"Разбить 13 файлов эпика PBX-1 длиннее 800 строк",
-     note:"28.09 ЗАВЕДЕНА при слиянии main в эпик PBX-1. В main действует правило: файл не длиннее 800 строк, старые исключения только уменьшаются. В эпике 13 своих файлов длиннее (например, services/telephony.py - 1226 строк, repositories/telephony.py - 948, telephony_gateway/outbox.py - 870, остальное - тесты). Решение владелицы 28.09: внести их в список исключений сейчас, разбить потом; решение записано в CONTRIBUTING.md рядом с CORE-140. Дальше: разбить каждый файл до 800 строк и убрать его из scripts/source-file-length-policy.json.",
+     note:"28.09 НОЧЬ. В РАБОТЕ: разбиение по одному исполнителю на группу файлов, каждый в своей рабочей копии, черновые PR в эпик (feature/pbx-1-asterisk-control-plane, 1ad8b7dbb), затем один общий прогон на объединении всех веток. ПРЕДЫДУЩЕЕ СОСТОЯНИЕ: 28.09 ЗАВЕДЕНА при слиянии main в эпик PBX-1. В main действует правило: файл не длиннее 800 строк, старые исключения только уменьшаются. В эпике 13 своих файлов длиннее (например, services/telephony.py - 1226 строк, repositories/telephony.py - 948, telephony_gateway/outbox.py - 870, остальное - тесты). Решение владелицы 28.09: внести их в список исключений сейчас, разбить потом; решение записано в CONTRIBUTING.md рядом с CORE-140. Дальше: разбить каждый файл до 800 строк и убрать его из scripts/source-file-length-policy.json.",
      refs:[]},
     {id:"PBX-12", lane:"backlog", prio:"p2", proj:"core", statusDate:"2026-09-28",
      title:"Перенести консоль телефонии в раздел настроек /settings/telephony",
